@@ -5,7 +5,6 @@
 
   const logBox = $('#log');
   const amountEl = $('#quotedAmount');
-  const btnPrepare = $('#btnPrepare');
   const btnPay = $('#btnPay');
 
   const meetingFields = $('#meeting-fields');
@@ -36,6 +35,17 @@
     return checked ? checked.value : 'meeting';
   }
 
+  function setAmount(value) {
+    amountEl.textContent = `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  }
+
+  function updateActionButton() {
+    const type = getBookingType();
+    if (!btnPay) return;
+
+    btnPay.textContent = type === 'meeting' ? '예약 신청하기' : '결제하기';
+  }
+
   function updateBookingTypeUI() {
     const type = getBookingType();
 
@@ -47,33 +57,36 @@
     if (type === 'meeting') {
       meetingFields.classList.remove('is-hidden');
       dormFields.classList.add('is-hidden');
-      amountEl.textContent = '0원';
+      setAmount(0);
     } else {
       meetingFields.classList.add('is-hidden');
       dormFields.classList.remove('is-hidden');
       autoQuoteDorm();
     }
+
+    updateActionButton();
   }
 
   function collectForm() {
     const bookingType = getBookingType();
+    const settlementEl = $('#settlementMethod');
 
     const common = {
       bookingType,
-      contactName: $('#contactName').value.trim(),
-      phone: $('#phone').value.trim(),
-      email: $('#email').value.trim(),
-      agree: $('#agree').checked
+      contactName: $('#contactName')?.value.trim() || '',
+      phone: $('#phone')?.value.trim() || '',
+      email: $('#email')?.value.trim() || '',
+      agree: $('#agree')?.checked || false
     };
 
     if (bookingType === 'meeting') {
       return {
         ...common,
-        resourceName: $('#meetingRoom').value,
-        startDate: $('#meetingDate').value,
-        endDate: $('#meetingDate').value,
+        resourceName: $('#meetingRoom')?.value || '',
+        startDate: $('#meetingDate')?.value || '',
+        endDate: $('#meetingDate')?.value || '',
         headcount: 0,
-        purpose: $('#meetingPurpose').value.trim(),
+        purpose: $('#meetingPurpose')?.value.trim() || '',
         settlementMethod: ''
       };
     }
@@ -81,15 +94,15 @@
     return {
       ...common,
       resourceName: '연수원',
-      startDate: $('#checkInDate').value,
-      endDate: $('#checkOutDate').value,
-      headcount: Number($('#headcount').value || 0),
-      purpose: $('#dormPurpose').value.trim(),
-      settlementMethod: $('#settlementMethod').value
+      startDate: $('#checkInDate')?.value || '',
+      endDate: $('#checkOutDate')?.value || '',
+      headcount: Number($('#headcount')?.value || 0),
+      purpose: $('#dormPurpose')?.value.trim() || '',
+      settlementMethod: settlementEl ? settlementEl.value : '카드결제'
     };
   }
 
-  function validateForm(payload, forPayment = false) {
+  function validateForm(payload, forSubmit = false) {
     if (!payload.contactName) throw new Error('담당자 성함을 입력해 주세요.');
     if (!payload.phone) throw new Error('담당자 연락처를 입력해 주세요.');
     if (!payload.email) throw new Error('이메일주소를 입력해 주세요.');
@@ -104,11 +117,11 @@
       if (!payload.startDate) throw new Error('입실일을 입력해 주세요.');
       if (!payload.endDate) throw new Error('퇴실일을 입력해 주세요.');
       if (!payload.headcount || payload.headcount < 1) throw new Error('숙박인원을 1명 이상 입력해 주세요.');
-      if (!payload.settlementMethod) throw new Error('정산방법을 선택해 주세요.');
+      if (!payload.settlementMethod) throw new Error('정산방법을 확인해 주세요.');
       if (!payload.purpose) throw new Error('사용신청목적을 입력해 주세요.');
     }
 
-    if (forPayment && !payload.agree) {
+    if (forSubmit && !payload.agree) {
       throw new Error('이용약관 및 취소/환불정책 확인이 필요합니다.');
     }
   }
@@ -136,11 +149,7 @@
     return data;
   }
 
-  function setAmount(value) {
-    amountEl.textContent = `${Number(value || 0).toLocaleString('ko-KR')}원`;
-  }
-
-  function debounce(fn, delay = 300) {
+  function debounce(fn, delay = 250) {
     let timer = null;
     return (...args) => {
       clearTimeout(timer);
@@ -156,15 +165,14 @@
       return;
     }
 
-    const headcountInput = $('#headcount');
-    const headcountValue = (headcountInput?.value || '').trim();
+    const headcountRaw = ($('#headcount')?.value || '').trim();
 
-    if (!headcountValue) {
+    if (!headcountRaw) {
       setAmount(0);
       return;
     }
 
-    const headcount = Number(headcountValue);
+    const headcount = Number(headcountRaw);
 
     if (!Number.isFinite(headcount) || headcount < 1) {
       setAmount(0);
@@ -172,12 +180,9 @@
     }
 
     try {
-      const payload = collectForm();
       const data = await postJSON('/api/quote', {
         bookingType: 'dorm',
-        headcount: payload.headcount,
-        startDate: payload.startDate || '',
-        endDate: payload.endDate || ''
+        headcount
       });
 
       setAmount(data.totalAmount);
@@ -187,36 +192,51 @@
     }
   }
 
-  const debouncedAutoQuoteDorm = debounce(autoQuoteDorm, 250);
+  const debouncedAutoQuoteDorm = debounce(autoQuoteDorm, 200);
 
-  async function preparePayment() {
+  async function submitMeetingBooking() {
     const payload = collectForm();
-    validateForm(payload, false);
+    validateForm(payload, true);
 
-    const data = await postJSON('/api/create-payment', payload);
-    preparedPayment = data;
+    const reservation = await postJSON('/api/create-payment', payload);
+    log('회의실 예약 검증 완료', reservation);
 
-    setAmount(data.totalAmount);
-    log('예약 검증 완료', data);
-    return data;
+    const completeResult = await postJSON('/api/booking-complete', {
+      paymentId: reservation.paymentId || `MEETING-${Date.now()}`,
+      reservation: reservation.reservation,
+      verification: {
+        status: 'NOT_REQUIRED',
+        paymentRequired: false,
+        mock: true
+      }
+    });
+
+    log('회의실 예약 완료 처리', completeResult);
+    location.href = './success.html';
   }
 
-  async function mockPayAndComplete() {
-    const payment = preparedPayment || await preparePayment();
+  async function submitDormPayment() {
+    const payload = collectForm();
+    validateForm(payload, true);
+
+    const reservation = await postJSON('/api/create-payment', payload);
+    preparedPayment = reservation;
+    setAmount(reservation.totalAmount);
+    log('연수원 예약 검증 완료', reservation);
 
     const verifyResult = await postJSON('/api/verify-payment', {
-      paymentId: payment.paymentId,
-      amount: payment.totalAmount,
+      paymentId: reservation.paymentId,
+      amount: reservation.totalAmount,
       mock: true
     });
     log('결제 검증 완료', verifyResult);
 
     const completeResult = await postJSON('/api/booking-complete', {
-      paymentId: payment.paymentId,
-      reservation: payment.reservation,
+      paymentId: reservation.paymentId,
+      reservation: reservation.reservation,
       verification: verifyResult
     });
-    log('예약 완료 처리', completeResult);
+    log('연수원 예약 완료 처리', completeResult);
 
     location.href = './success.html';
   }
@@ -237,6 +257,11 @@
     debouncedAutoQuoteDorm();
   });
 
+  $('#headcount')?.addEventListener('change', () => {
+    preparedPayment = null;
+    debouncedAutoQuoteDorm();
+  });
+
   $('#checkInDate')?.addEventListener('change', () => {
     preparedPayment = null;
     debouncedAutoQuoteDorm();
@@ -247,23 +272,15 @@
     debouncedAutoQuoteDorm();
   });
 
-  btnPrepare?.addEventListener('click', async () => {
-    try {
-      await preparePayment();
-      alert('예약 검증이 완료되었습니다.');
-    } catch (err) {
-      log(`예약 검증 실패: ${err.message}`);
-      alert(err.message);
-    }
-  });
-
   btnPay?.addEventListener('click', async () => {
     try {
-      const payload = collectForm();
-      validateForm(payload, true);
-      await mockPayAndComplete();
+      if (getBookingType() === 'meeting') {
+        await submitMeetingBooking();
+      } else {
+        await submitDormPayment();
+      }
     } catch (err) {
-      log(`결제/예약 완료 실패: ${err.message}`);
+      log(`예약 진행 실패: ${err.message}`);
       alert(err.message);
     }
   });
