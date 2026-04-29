@@ -529,3 +529,10 @@ textarea{
     min-width:0;
   }
 }
+
+.btn:disabled{
+  opacity:.58;
+  cursor:not-allowed;
+  transform:none !important;
+  box-shadow:none;
+}
