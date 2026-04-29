@@ -509,3 +509,23 @@ textarea{
     font-size:24px;
   }
 }
+.button-row-end{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+}
+
+.button-row-end .btn{
+  min-width:160px;
+}
+
+@media (max-width: 720px){
+  .button-row-end{
+    justify-content:stretch;
+  }
+
+  .button-row-end .btn{
+    width:100%;
+    min-width:0;
+  }
+}
