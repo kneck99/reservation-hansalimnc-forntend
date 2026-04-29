@@ -1,6 +1,7 @@
 (function () {
   const cfg = window.HS_CONFIG || {};
-  const $ = (sel, root=document) => root.querySelector(sel);
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   const logBox = $('#log');
   const amountEl = $('#quotedAmount');
@@ -8,28 +9,107 @@
   const btnPrepare = $('#btnPrepare');
   const btnPay = $('#btnPay');
 
+  const meetingFields = $('#meeting-fields');
+  const dormFields = $('#dorm-fields');
+  const bookingTypeRadios = $$('input[name="bookingType"]');
+  const bookingCards = $$('.booking-type-card');
+
   let preparedPayment = null;
 
   function log(message, data) {
     const line = typeof data === 'undefined'
-      ? `[${new Date().toLocaleTimeString()}] ${message}`
-      : `[${new Date().toLocaleTimeString()}] ${message}\n${JSON.stringify(data, null, 2)}`;
-    logBox.textContent = line + "\n\n" + logBox.textContent;
+      ? `[오전 ${new Date().toLocaleTimeString()}] ${message}`
+      : `[오전 ${new Date().toLocaleTimeString()}] ${message}\n${JSON.stringify(data, null, 2)}`;
+    logBox.textContent = line + '\n\n' + logBox.textContent;
+  }
+
+  function formatPhone(value) {
+    const onlyNum = value.replace(/\D/g, '').slice(0, 11);
+
+    if (onlyNum.length < 4) return onlyNum;
+    if (onlyNum.length < 8) return `${onlyNum.slice(0, 3)}-${onlyNum.slice(3)}`;
+    return `${onlyNum.slice(0, 3)}-${onlyNum.slice(3, 7)}-${onlyNum.slice(7)}`;
+  }
+
+  function getBookingType() {
+    const checked = $('input[name="bookingType"]:checked');
+    return checked ? checked.value : 'meeting';
+  }
+
+  function updateBookingTypeUI() {
+    const type = getBookingType();
+
+    bookingCards.forEach(card => {
+      const isActive = card.dataset.bookingCard === type;
+      card.classList.toggle('active', isActive);
+    });
+
+    if (type === 'meeting') {
+      meetingFields.classList.remove('is-hidden');
+      dormFields.classList.add('is-hidden');
+      amountEl.textContent = '0원';
+    } else {
+      meetingFields.classList.add('is-hidden');
+      dormFields.classList.remove('is-hidden');
+    }
   }
 
   function collectForm() {
-    return {
-      bookingType: $('#bookingType').value,
-      resourceName: $('#resourceName').value,
-      startDate: $('#startDate').value,
-      endDate: $('#endDate').value,
-      headcount: Number($('#headcount').value || 0),
+    const bookingType = getBookingType();
+
+    const common = {
+      bookingType,
       contactName: $('#contactName').value.trim(),
       phone: $('#phone').value.trim(),
       email: $('#email').value.trim(),
-      purpose: $('#purpose').value.trim(),
       agree: $('#agree').checked
     };
+
+    if (bookingType === 'meeting') {
+      return {
+        ...common,
+        resourceName: $('#meetingRoom').value,
+        startDate: $('#meetingDate').value,
+        endDate: $('#meetingDate').value,
+        headcount: 0,
+        purpose: $('#meetingPurpose').value.trim(),
+        settlementMethod: ''
+      };
+    }
+
+    return {
+      ...common,
+      resourceName: '연수원',
+      startDate: $('#checkInDate').value,
+      endDate: $('#checkOutDate').value,
+      headcount: Number($('#headcount').value || 0),
+      purpose: $('#dormPurpose').value.trim(),
+      settlementMethod: $('#settlementMethod').value
+    };
+  }
+
+  function validateForm(payload, forPayment = false) {
+    if (!payload.contactName) throw new Error('담당자 성함을 입력해 주세요.');
+    if (!payload.phone) throw new Error('담당자 연락처를 입력해 주세요.');
+    if (!payload.email) throw new Error('이메일주소를 입력해 주세요.');
+
+    if (payload.bookingType === 'meeting') {
+      if (!payload.startDate) throw new Error('사용신청일자를 입력해 주세요.');
+      if (!payload.resourceName) throw new Error('회의실을 선택해 주세요.');
+      if (!payload.purpose) throw new Error('사용신청목적을 입력해 주세요.');
+    }
+
+    if (payload.bookingType === 'dorm') {
+      if (!payload.startDate) throw new Error('입실일을 입력해 주세요.');
+      if (!payload.endDate) throw new Error('퇴실일을 입력해 주세요.');
+      if (!payload.headcount || payload.headcount < 1) throw new Error('숙박인원을 1명 이상 입력해 주세요.');
+      if (!payload.settlementMethod) throw new Error('정산방법을 선택해 주세요.');
+      if (!payload.purpose) throw new Error('사용신청목적을 입력해 주세요.');
+    }
+
+    if (forPayment && !payload.agree) {
+      throw new Error('이용약관 및 취소/환불정책 확인이 필요합니다.');
+    }
   }
 
   async function postJSON(path, body) {
@@ -51,11 +131,21 @@
     if (!res.ok) {
       throw new Error(data.error || `HTTP ${res.status}`);
     }
+
     return data;
   }
 
   async function quote() {
     const payload = collectForm();
+
+    if (payload.bookingType === 'meeting') {
+      amountEl.textContent = '0원';
+      log('회의실 예약은 현재 금액 계산 없이 진행됩니다.');
+      return { ok: true, bookingType: 'meeting', totalAmount: 0 };
+    }
+
+    validateForm(payload, false);
+
     const data = await postJSON('/api/quote', payload);
     amountEl.textContent = `${Number(data.totalAmount).toLocaleString('ko-KR')}원`;
     log('금액 계산 완료', data);
@@ -64,13 +154,11 @@
 
   async function preparePayment() {
     const payload = collectForm();
-    if (!payload.startDate || !payload.endDate) throw new Error('날짜를 입력해 주세요.');
-    if (!payload.contactName) throw new Error('담당자명을 입력해 주세요.');
-    if (!payload.phone) throw new Error('연락처를 입력해 주세요.');
-    if (!payload.email) throw new Error('이메일을 입력해 주세요.');
-    if (!payload.purpose) throw new Error('이용 목적을 입력해 주세요.');
+    validateForm(payload, false);
+
     const data = await postJSON('/api/create-payment', payload);
     preparedPayment = data;
+
     amountEl.textContent = `${Number(data.totalAmount).toLocaleString('ko-KR')}원`;
     log('예약 검증 완료', data);
     return data;
@@ -78,6 +166,7 @@
 
   async function mockPayAndComplete() {
     const payment = preparedPayment || await preparePayment();
+
     const verifyResult = await postJSON('/api/verify-payment', {
       paymentId: payment.paymentId,
       amount: payment.totalAmount,
@@ -91,8 +180,25 @@
       verification: verifyResult
     });
     log('예약 완료 처리', completeResult);
+
     location.href = '/success.html';
   }
+
+  $('#phone')?.addEventListener('input', (e) => {
+    e.target.value = formatPhone(e.target.value);
+  });
+
+  bookingTypeRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      preparedPayment = null;
+      updateBookingTypeUI();
+      if (getBookingType() === 'dorm') {
+        btnQuote.click();
+      } else {
+        amountEl.textContent = '0원';
+      }
+    });
+  });
 
   btnQuote?.addEventListener('click', async () => {
     try {
@@ -106,7 +212,7 @@
   btnPrepare?.addEventListener('click', async () => {
     try {
       await preparePayment();
-      alert('예약 검증이 완료되었습니다. 이제 결제를 진행할 수 있습니다.');
+      alert('예약 검증이 완료되었습니다.');
     } catch (err) {
       log(`예약 검증 실패: ${err.message}`);
       alert(err.message);
@@ -115,14 +221,14 @@
 
   btnPay?.addEventListener('click', async () => {
     try {
-      if (!collectForm().agree) throw new Error('이용약관 및 취소/환불정책 확인이 필요합니다.');
+      const payload = collectForm();
+      validateForm(payload, true);
       await mockPayAndComplete();
     } catch (err) {
       log(`결제/예약 완료 실패: ${err.message}`);
       alert(err.message);
-      location.href = '/fail.html';
     }
   });
 
-  btnQuote?.click();
+  updateBookingTypeUI();
 })();
