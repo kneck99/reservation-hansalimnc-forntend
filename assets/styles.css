@@ -120,3 +120,73 @@ a{text-decoration:none;color:inherit}
   .btn{width:100%}
   #quotedAmount{font-size:24px}
 }
+
+.field-help{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+.field-label{
+  display:block;
+  margin-bottom:10px;
+  font-size:14px;
+  font-weight:700;
+}
+
+.booking-type-group{
+  display:grid;
+  gap:10px;
+}
+
+.booking-type-options{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:16px;
+}
+
+.booking-type-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-height:72px;
+  padding:0 20px;
+  border:1px solid rgba(22,58,51,.18);
+  border-radius:20px;
+  background:#fff;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.booking-type-card input{
+  width:20px;
+  height:20px;
+  margin:0;
+}
+
+.booking-type-card.active{
+  border-color:#3d8b5f;
+  background:#eef5ef;
+}
+
+.dynamic-section{
+  display:block;
+}
+
+.dynamic-section.is-hidden{
+  display:none;
+}
+
+.section-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:16px;
+}
+
+@media (max-width: 720px){
+  .booking-type-options,
+  .section-grid{
+    grid-template-columns:1fr;
+  }
+}
