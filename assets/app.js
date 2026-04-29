@@ -5,7 +5,6 @@
 
   const logBox = $('#log');
   const amountEl = $('#quotedAmount');
-  const btnQuote = $('#btnQuote');
   const btnPrepare = $('#btnPrepare');
   const btnPay = $('#btnPay');
 
@@ -17,9 +16,10 @@
   let preparedPayment = null;
 
   function log(message, data) {
+    const now = new Date().toLocaleTimeString('ko-KR');
     const line = typeof data === 'undefined'
-      ? `[오전 ${new Date().toLocaleTimeString()}] ${message}`
-      : `[오전 ${new Date().toLocaleTimeString()}] ${message}\n${JSON.stringify(data, null, 2)}`;
+      ? `[${now}] ${message}`
+      : `[${now}] ${message}\n${JSON.stringify(data, null, 2)}`;
     logBox.textContent = line + '\n\n' + logBox.textContent;
   }
 
@@ -51,6 +51,7 @@
     } else {
       meetingFields.classList.add('is-hidden');
       dormFields.classList.remove('is-hidden');
+      autoQuoteDorm();
     }
   }
 
@@ -135,22 +136,58 @@
     return data;
   }
 
-  async function quote() {
-    const payload = collectForm();
+  function setAmount(value) {
+    amountEl.textContent = `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  }
 
-    if (payload.bookingType === 'meeting') {
-      amountEl.textContent = '0원';
-      log('회의실 예약은 현재 금액 계산 없이 진행됩니다.');
-      return { ok: true, bookingType: 'meeting', totalAmount: 0 };
+  function debounce(fn, delay = 300) {
+    let timer = null;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  async function autoQuoteDorm() {
+    const bookingType = getBookingType();
+
+    if (bookingType !== 'dorm') {
+      setAmount(0);
+      return;
     }
 
-    validateForm(payload, false);
+    const headcountInput = $('#headcount');
+    const headcountValue = (headcountInput?.value || '').trim();
 
-    const data = await postJSON('/api/quote', payload);
-    amountEl.textContent = `${Number(data.totalAmount).toLocaleString('ko-KR')}원`;
-    log('금액 계산 완료', data);
-    return data;
+    if (!headcountValue) {
+      setAmount(0);
+      return;
+    }
+
+    const headcount = Number(headcountValue);
+
+    if (!Number.isFinite(headcount) || headcount < 1) {
+      setAmount(0);
+      return;
+    }
+
+    try {
+      const payload = collectForm();
+      const data = await postJSON('/api/quote', {
+        bookingType: 'dorm',
+        headcount: payload.headcount,
+        startDate: payload.startDate || '',
+        endDate: payload.endDate || ''
+      });
+
+      setAmount(data.totalAmount);
+    } catch (err) {
+      log(`금액 자동 계산 실패: ${err.message}`);
+      setAmount(0);
+    }
   }
+
+  const debouncedAutoQuoteDorm = debounce(autoQuoteDorm, 250);
 
   async function preparePayment() {
     const payload = collectForm();
@@ -159,7 +196,7 @@
     const data = await postJSON('/api/create-payment', payload);
     preparedPayment = data;
 
-    amountEl.textContent = `${Number(data.totalAmount).toLocaleString('ko-KR')}원`;
+    setAmount(data.totalAmount);
     log('예약 검증 완료', data);
     return data;
   }
@@ -181,7 +218,7 @@
     });
     log('예약 완료 처리', completeResult);
 
-    location.href = '/success.html';
+    location.href = './success.html';
   }
 
   $('#phone')?.addEventListener('input', (e) => {
@@ -192,21 +229,22 @@
     radio.addEventListener('change', () => {
       preparedPayment = null;
       updateBookingTypeUI();
-      if (getBookingType() === 'dorm') {
-        btnQuote.click();
-      } else {
-        amountEl.textContent = '0원';
-      }
     });
   });
 
-  btnQuote?.addEventListener('click', async () => {
-    try {
-      await quote();
-    } catch (err) {
-      log(`금액 계산 실패: ${err.message}`);
-      alert(err.message);
-    }
+  $('#headcount')?.addEventListener('input', () => {
+    preparedPayment = null;
+    debouncedAutoQuoteDorm();
+  });
+
+  $('#checkInDate')?.addEventListener('change', () => {
+    preparedPayment = null;
+    debouncedAutoQuoteDorm();
+  });
+
+  $('#checkOutDate')?.addEventListener('change', () => {
+    preparedPayment = null;
+    debouncedAutoQuoteDorm();
   });
 
   btnPrepare?.addEventListener('click', async () => {
