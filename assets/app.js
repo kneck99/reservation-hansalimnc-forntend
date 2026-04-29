@@ -287,3 +287,43 @@
 
   updateBookingTypeUI();
 })();
+
+let isSubmitting = false;
+
+function setSubmittingState(submitting) {
+  if (!btnPay) return;
+
+  if (!btnPay.dataset.originalText) {
+    btnPay.dataset.originalText = btnPay.textContent;
+  }
+
+  btnPay.disabled = submitting;
+  btnPay.setAttribute('aria-disabled', submitting ? 'true' : 'false');
+
+  if (submitting) {
+    btnPay.textContent = '처리 중...';
+  } else {
+    btnPay.textContent = btnPay.dataset.originalText;
+  }
+}
+
+btnPay?.addEventListener('click', async () => {
+  if (isSubmitting) return;
+
+  try {
+    isSubmitting = true;
+    setSubmittingState(true);
+
+    if (getBookingType() === 'meeting') {
+      await submitMeetingReservation();
+    } else {
+      await submitDormPayment();
+    }
+  } catch (err) {
+    log(`예약 진행 실패: ${err.message}`);
+    alert(err.message);
+
+    isSubmitting = false;
+    setSubmittingState(false);
+  }
+});
