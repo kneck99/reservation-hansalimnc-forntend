@@ -1,202 +1,207 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>한살림 농업살림센터 예약</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="./assets/pretendard.css" />
+  <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="container nav">
-      <a class="brand" href="/index.html">
-        <div class="brand-mark"></div>
-        <div class="brand-text">
+      <a class="brand" href="./index.html" aria-label="한살림 농업살림센터 예약 홈">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
           <strong>한살림 농업살림센터 예약</strong>
           <span>reservation.hansalimnc.co.kr</span>
-        </div>
+        </span>
       </a>
-      <nav class="nav-links">
-        <a href="/index.html" class="active">예약</a>
-        <a href="/success.html">완료 예시</a>
-        <a href="/fail.html">실패 예시</a>
+
+      <nav class="nav-links" aria-label="주요 메뉴">
+        <a href="./index.html" class="active">예약</a>
+        <a href="./success.html">완료 예시</a>
+        <a href="./fail.html">실패 예시</a>
       </nav>
     </div>
   </header>
 
-  <main class="container page">
-    <section class="hero-card">
-      <div>
-        <span class="badge">예약 전용 프론트</span>
-        <h1>연수원 · 회의실 예약</h1>
-        <p>
-          프론트는 GitHub Pages, API는 Cloudflare Worker, 내부 자동화는 Google Apps Script로 분리한 추천 구조입니다.
-          결제 검증은 Worker에서 처리하고, 최종 예약 저장·캘린더 등록·메일 발송은 Apps Script가 담당합니다.
-        </p>
-      </div>
-      <div class="hero-note">
-        <div class="pricing-box">
+  <main class="page">
+    <div class="container">
+      <section class="hero-card">
+        <div class="hero-copy">
+          <h1>연수원 · 회의실 예약</h1>
+          <p>이용 정보를 입력하고 예약을 진행해 주세요.</p>
+        </div>
+
+        <aside class="price-card" aria-label="연수원 이용요금 안내">
           <h3>연수원 이용요금</h3>
           <ul>
             <li>1~8인: 150,000원</li>
             <li>9인부터 1인당 20,000원 추가</li>
           </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid-two">
-      <section class="card">
-        <h2>예약 정보 입력</h2>
-<form id="reservation-form" class="form-grid">
-  <label>
-    <span>담당자 성함</span>
-    <input type="text" id="contactName" name="contactName" required />
-  </label>
-
-  <label>
-    <span>담당자 연락처</span>
-    <input type="tel" id="phone" name="phone" placeholder="000-0000-0000" required />
-    <small class="field-help">숫자를 입력하면 000-0000-0000 형식으로 자동 정리됩니다.</small>
-  </label>
-
-  <label class="full">
-    <span>이메일주소</span>
-    <input type="email" id="email" name="email" placeholder="example@email.com" required />
-  </label>
-
-  <div class="full booking-type-group">
-    <span class="field-label">예약 구분</span>
-    <div class="booking-type-options">
-      <label class="booking-type-card active" data-booking-card="meeting">
-        <input type="radio" name="bookingType" value="meeting" checked />
-        <span>회의실 예약</span>
-      </label>
-
-      <label class="booking-type-card" data-booking-card="dorm">
-        <input type="radio" name="bookingType" value="dorm" />
-        <span>연수원 예약</span>
-      </label>
-    </div>
-  </div>
-
-  <!-- 회의실 예약 영역 -->
-  <div id="meeting-fields" class="dynamic-section full">
-    <div class="section-grid">
-      <label>
-        <span>사용신청일자</span>
-        <input type="date" id="meetingDate" name="meetingDate" />
-      </label>
-
-      <label>
-        <span>회의실 선택</span>
-        <select id="meetingRoom" name="meetingRoom">
-          <option value="">선택해 주세요</option>
-          <option value="2층 대회의실[모심]">2층 대회의실[모심]</option>
-          <option value="2층 중회의실[살림]">2층 중회의실[살림]</option>
-          <option value="3층 중회의실[생명]">3층 중회의실[생명]</option>
-        </select>
-      </label>
-
-      <label class="full">
-        <span>사용신청목적(개인 또는 단체명)</span>
-        <input type="text" id="meetingPurpose" name="meetingPurpose" />
-      </label>
-    </div>
-  </div>
-
-  <!-- 연수원 예약 영역 -->
-  <div id="dorm-fields" class="dynamic-section full is-hidden">
-    <div class="section-grid">
-      <label>
-        <span>입실일</span>
-        <input type="date" id="checkInDate" name="checkInDate" />
-      </label>
-
-      <label>
-        <span>퇴실일</span>
-        <input type="date" id="checkOutDate" name="checkOutDate" />
-      </label>
-
-      <label>
-        <span>숙박인원</span>
-        <input type="number" id="headcount" name="headcount" min="1" placeholder="숫자만 입력" value="8" />
-      </label>
-
-      <label>
-        <span>정산방법</span>
-        <select id="settlementMethod" name="settlementMethod">
-          <option value="">선택해 주세요</option>
-          <option value="카드결제">카드결제</option>
-          <option value="계좌이체">계좌이체</option>
-          <option value="현장결제">현장결제</option>
-        </select>
-      </label>
-
-      <label class="full">
-        <span>사용신청목적</span>
-        <input type="text" id="dormPurpose" name="dormPurpose" />
-      </label>
-    </div>
-  </div>
-
-  <label class="full checkline">
-    <input type="checkbox" id="agree" required />
-    <span>이용약관 및 취소/환불정책을 확인했습니다.</span>
-  </label>
-
-  <div class="full summary-box">
-    <div>
-      <strong>예상 결제금액</strong>
-      <div id="quotedAmount">150,000원</div>
-    </div>
-    <button type="button" id="btnQuote" class="btn btn-secondary">금액 다시 계산</button>
-  </div>
-
-  <div class="full button-row">
-    <button type="button" id="btnPrepare" class="btn btn-secondary">예약 검증</button>
-    <button type="button" id="btnPay" class="btn btn-primary">결제하기</button>
-  </div>
-</form>
+        </aside>
       </section>
 
-      <aside class="card">
-        <h2>구조 안내</h2>
-        <ol class="flow-list">
-          <li>GitHub Pages가 예약 화면 제공</li>
-          <li>Cloudflare Worker가 금액 계산·예약 검증·결제 검증 처리</li>
-          <li>Apps Script가 시트·캘린더·메일 자동화 담당</li>
-        </ol>
+      <section class="card">
+        <h2>예약 정보 입력</h2>
 
-        <div class="notice">
-          <h3>현재 상태</h3>
-          <p>
-            이 패키지는 실결제 시크릿 키를 포함하지 않은 개발용 통합본입니다.
-            PortOne 실연동 시에는 Worker 환경변수와 Apps Script 웹앱 URL을 입력해야 합니다.
-          </p>
+        <form id="reservation-form" class="form-grid" novalidate>
+          <label class="field">
+            <span class="field-label">담당자 성함</span>
+            <input type="text" id="contactName" name="contactName" maxlength="40" required />
+          </label>
+
+          <label class="field">
+            <span class="field-label">담당자 연락처</span>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              maxlength="13"
+              placeholder="000-0000-0000"
+              required
+            />
+            <small class="field-help">숫자를 입력하면 000-0000-0000 형식으로 자동 정리됩니다.</small>
+          </label>
+
+          <label class="field full">
+            <span class="field-label">이메일주소</span>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              maxlength="120"
+              placeholder="example@email.com"
+              required
+            />
+          </label>
+
+          <div class="full booking-type-group">
+            <span class="field-label">예약 구분</span>
+
+            <div class="booking-type-options">
+              <label class="booking-type-card active" data-booking-card="meeting">
+                <input type="radio" name="bookingType" value="meeting" checked />
+                <span>회의실 예약</span>
+              </label>
+
+              <label class="booking-type-card" data-booking-card="dorm">
+                <input type="radio" name="bookingType" value="dorm" />
+                <span>연수원 예약</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 회의실 예약 -->
+          <div id="meeting-fields" class="dynamic-section full">
+            <div class="section-grid">
+              <label class="field">
+                <span class="field-label">사용신청일자</span>
+                <input type="date" id="meetingDate" name="meetingDate" />
+              </label>
+
+              <label class="field">
+                <span class="field-label">회의실 선택</span>
+                <select id="meetingRoom" name="meetingRoom">
+                  <option value="">선택해 주세요</option>
+                  <option value="2층 대회의실[모심]">2층 대회의실[모심]</option>
+                  <option value="2층 중회의실[살림]">2층 중회의실[살림]</option>
+                  <option value="3층 중회의실[생명]">3층 중회의실[생명]</option>
+                </select>
+              </label>
+
+              <label class="field full">
+                <span class="field-label">사용신청목적(개인 또는 단체명)</span>
+                <input type="text" id="meetingPurpose" name="meetingPurpose" maxlength="100" />
+              </label>
+            </div>
+          </div>
+
+          <!-- 연수원 예약 -->
+          <div id="dorm-fields" class="dynamic-section full is-hidden">
+            <div class="section-grid">
+              <label class="field">
+                <span class="field-label">입실일</span>
+                <input type="date" id="checkInDate" name="checkInDate" />
+              </label>
+
+              <label class="field">
+                <span class="field-label">퇴실일</span>
+                <input type="date" id="checkOutDate" name="checkOutDate" />
+              </label>
+
+              <label class="field">
+                <span class="field-label">숙박인원</span>
+                <input
+                  type="number"
+                  id="headcount"
+                  name="headcount"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="숫자만 입력"
+                  value="8"
+                />
+              </label>
+
+              <label class="field">
+                <span class="field-label">정산방법</span>
+                <select id="settlementMethod" name="settlementMethod">
+                  <option value="">선택해 주세요</option>
+                  <option value="카드결제">카드결제</option>
+                  <option value="계좌이체">계좌이체</option>
+                  <option value="현장결제">현장결제</option>
+                </select>
+              </label>
+
+              <label class="field full">
+                <span class="field-label">사용신청목적</span>
+                <input type="text" id="dormPurpose" name="dormPurpose" maxlength="100" />
+              </label>
+            </div>
+          </div>
+
+          <div class="full">
+            <label class="checkline" for="agree">
+              <input type="checkbox" id="agree" />
+              <span>이용약관 및 취소/환불정책을 확인했습니다.</span>
+            </label>
+          </div>
+
+          <div class="full summary-box">
+            <div>
+              <strong>예상 결제금액</strong>
+              <div id="quotedAmount">0원</div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="btnQuote">금액 다시 계산</button>
+          </div>
+
+          <div class="full button-row">
+            <button type="button" class="btn btn-secondary" id="btnPrepare">예약 검증</button>
+            <button type="button" class="btn btn-primary" id="btnPay">결제하기</button>
+          </div>
+        </form>
+
+        <div class="policy-box">
+          <strong>정책 링크</strong>
+          <div class="policy-links">
+            <a href="./pages/terms.html">이용약관</a>
+            <a href="./pages/refund.html">취소/환불정책</a>
+            <a href="./pages/privacy.html">개인정보처리방침</a>
+            <a href="./pages/business.html">사업자정보</a>
+          </div>
         </div>
+      </section>
 
-        <div class="notice">
-          <h3>정책 링크</h3>
-          <p class="links">
-            <a href="https://www.hansalimnc.co.kr/pages/policy/terms.html" target="_blank" rel="noopener">이용약관</a>
-            <a href="https://www.hansalimnc.co.kr/pages/policy/refund.html" target="_blank" rel="noopener">취소/환불정책</a>
-            <a href="https://www.hansalimnc.co.kr/pages/policy/privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
-            <a href="https://www.hansalimnc.co.kr/pages/policy/business.html" target="_blank" rel="noopener">사업자정보</a>
-          </p>
-        </div>
-      </aside>
-    </section>
-
-    <section class="card">
-      <h2>개발 상태 로그</h2>
-      <pre id="log" class="log-box">준비됨</pre>
-    </section>
+      <section class="card">
+        <h2>개발 상태 로그</h2>
+        <pre id="log" class="log-box">준비됨</pre>
+      </section>
+    </div>
   </main>
 
-  <script src="/assets/config.js"></script>
-  <script src="/assets/app.js"></script>
+  <script src="./assets/config.js"></script>
+  <script src="./assets/app.js"></script>
 </body>
 </html>
