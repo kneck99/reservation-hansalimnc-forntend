@@ -12,12 +12,17 @@
   const bookingTypeRadios = $$('input[name="bookingType"]');
   const bookingCards = $$('.booking-type-card');
 
+  let isSubmitting = false;
+
   function log(message, data) {
     const now = new Date().toLocaleTimeString('ko-KR');
     const line = typeof data === 'undefined'
       ? `[${now}] ${message}`
       : `[${now}] ${message}\n${JSON.stringify(data, null, 2)}`;
-    if (logBox) logBox.textContent = `${line}\n\n${logBox.textContent}`;
+
+    if (logBox) {
+      logBox.textContent = `${line}\n\n${logBox.textContent}`;
+    }
   }
 
   function setAmount(value) {
@@ -114,6 +119,10 @@
       if (!payload.headcount || payload.headcount < 1) throw new Error('숙박인원을 1명 이상 입력해 주세요.');
       if (!payload.settlementMethod) throw new Error('정산방법을 확인해 주세요.');
       if (!payload.purpose) throw new Error('사용신청목적을 입력해 주세요.');
+
+      const start = new Date(`${payload.startDate}T00:00:00+09:00`);
+      const end = new Date(`${payload.endDate}T00:00:00+09:00`);
+      if (end <= start) throw new Error('퇴실일은 입실일 다음 날짜로 입력해 주세요.');
     }
 
     if (forSubmit && !payload.agree) {
@@ -152,20 +161,29 @@
     };
   }
 
+  function makeSafeCustomerId(reservation) {
+    const phoneDigits = String(reservation?.phone || '').replace(/\D/g, '');
+    const fallback = Date.now().toString(36);
+    return `c${phoneDigits || fallback}`.slice(0, 20);
+  }
+
   async function autoQuoteDorm() {
     if (getBookingType() !== 'dorm') {
       setAmount(0);
       return;
     }
 
-    const raw = ($('#headcount')?.value || '').trim();
-    if (!raw) {
+    const payload = collectForm();
+
+    if (!payload.startDate || !payload.endDate || !payload.headcount || payload.headcount < 1) {
       setAmount(0);
       return;
     }
 
-    const headcount = Number(raw);
-    if (!Number.isFinite(headcount) || headcount < 1) {
+    const start = new Date(`${payload.startDate}T00:00:00+09:00`);
+    const end = new Date(`${payload.endDate}T00:00:00+09:00`);
+
+    if (end <= start) {
       setAmount(0);
       return;
     }
@@ -173,9 +191,14 @@
     try {
       const data = await postJSON('/api/quote', {
         bookingType: 'dorm',
-        headcount
+        resourceName: '연수원',
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        headcount: payload.headcount
       });
+
       setAmount(data.totalAmount);
+      log('금액 자동 계산 완료', data);
     } catch (err) {
       log(`금액 자동 계산 실패: ${err.message}`);
       setAmount(0);
@@ -186,6 +209,23 @@
 
   function saveSuccessPayload(payload) {
     sessionStorage.setItem('hs_last_reservation', JSON.stringify(payload));
+  }
+
+  function setSubmittingState(submitting) {
+    if (!btnPay) return;
+
+    if (!btnPay.dataset.originalText) {
+      btnPay.dataset.originalText = btnPay.textContent;
+    }
+
+    btnPay.disabled = submitting;
+    btnPay.setAttribute('aria-disabled', submitting ? 'true' : 'false');
+
+    if (submitting) {
+      btnPay.textContent = '처리 중...';
+    } else {
+      btnPay.textContent = getBookingType() === 'meeting' ? '예약 신청하기' : '결제하기';
+    }
   }
 
   async function submitMeetingReservation() {
@@ -221,6 +261,8 @@
       throw new Error('PortOne SDK가 로드되지 않았습니다.');
     }
 
+    const safeCustomerId = makeSafeCustomerId(draft.reservation);
+
     const response = await window.PortOne.requestPayment({
       storeId: cfg.portone.storeId,
       channelKey: cfg.portone.channelKey,
@@ -230,6 +272,7 @@
       currency: 'CURRENCY_KRW',
       payMethod: 'CARD',
       customer: {
+        customerId: safeCustomerId,
         fullName: draft.reservation.contactName,
         phoneNumber: draft.reservation.phone,
         email: draft.reservation.email
@@ -246,6 +289,7 @@
       paymentId: draft.paymentId,
       order: draft.reservation
     });
+
     log('서버 결제 검증 완료', verified);
 
     const completeResult = await postJSON('/api/booking-complete', {
@@ -273,7 +317,12 @@
   $('#checkOutDate')?.addEventListener('change', debouncedAutoQuoteDorm);
 
   btnPay?.addEventListener('click', async () => {
+    if (isSubmitting) return;
+
     try {
+      isSubmitting = true;
+      setSubmittingState(true);
+
       if (getBookingType() === 'meeting') {
         await submitMeetingReservation();
       } else {
@@ -282,48 +331,11 @@
     } catch (err) {
       log(`예약 진행 실패: ${err.message}`);
       alert(err.message);
+
+      isSubmitting = false;
+      setSubmittingState(false);
     }
   });
 
   updateBookingTypeUI();
 })();
-
-let isSubmitting = false;
-
-function setSubmittingState(submitting) {
-  if (!btnPay) return;
-
-  if (!btnPay.dataset.originalText) {
-    btnPay.dataset.originalText = btnPay.textContent;
-  }
-
-  btnPay.disabled = submitting;
-  btnPay.setAttribute('aria-disabled', submitting ? 'true' : 'false');
-
-  if (submitting) {
-    btnPay.textContent = '처리 중...';
-  } else {
-    btnPay.textContent = btnPay.dataset.originalText;
-  }
-}
-
-btnPay?.addEventListener('click', async () => {
-  if (isSubmitting) return;
-
-  try {
-    isSubmitting = true;
-    setSubmittingState(true);
-
-    if (getBookingType() === 'meeting') {
-      await submitMeetingReservation();
-    } else {
-      await submitDormPayment();
-    }
-  } catch (err) {
-    log(`예약 진행 실패: ${err.message}`);
-    alert(err.message);
-
-    isSubmitting = false;
-    setSubmittingState(false);
-  }
-});
