@@ -3,139 +3,401 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>예약 완료 | 한살림 농업살림센터</title>
-  <link rel="stylesheet" href="./assets/pretendard.css" />
+  <title>예약 완료 | 한살림 농업살림센터 예약</title>
   <link rel="stylesheet" href="./assets/styles.css" />
   <style>
-    .result-wrap{
-      max-width:840px;
-      margin:48px auto;
-      padding:0 16px;
+    :root{
+      --bg:#f3f1e8;
+      --card:#fcfbf7;
+      --line:#d8ddd7;
+      --text:#173b34;
+      --muted:#6f786f;
+      --primary:#11664f;
+      --primary-dark:#0d5a45;
+      --shadow:0 12px 30px rgba(0,40,27,.06);
+      --radius:26px;
     }
-    .result-card{
-      background:#fff;
-      border:1px solid rgba(23,59,52,.1);
-      border-radius:24px;
-      box-shadow:0 14px 32px rgba(0,40,27,.06);
-      padding:28px 24px;
-    }
-    .result-title{
-      margin:0 0 8px;
-      font-size:32px;
-      line-height:1.2;
-    }
-    .result-desc{
-      margin:0 0 24px;
-      color:#6f786f;
-    }
-    .result-grid{
-      display:grid;
-      grid-template-columns:180px 1fr;
-      gap:12px 16px;
-      margin-top:20px;
-    }
-    .result-grid dt{
-      font-weight:800;
-    }
-    .result-grid dd{
+
+    *{ box-sizing:border-box; }
+
+    body{
       margin:0;
-      color:#173b34;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, sans-serif;
     }
-    .result-actions{
+
+    .page{
+      max-width:980px;
+      margin:0 auto;
+      padding:34px 18px 48px;
+    }
+
+    .topbar{
       display:flex;
-      gap:12px;
-      justify-content:flex-end;
-      margin-top:28px;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+    }
+
+    .auth-mini-actions{
+      display:flex;
+      gap:10px;
       flex-wrap:wrap;
     }
-    @media (max-width:720px){
-      .result-grid{
-        grid-template-columns:1fr;
-        gap:6px 0;
+
+    .mini-link-btn{
+      height:38px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid #d7ddd8;
+      background:#fff;
+      color:#173b34;
+      font-size:13px;
+      font-weight:800;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+
+    .mini-link-btn.primary{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid rgba(23,59,52,.08);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:32px 28px;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#edf7f0;
+      color:#1c5b34;
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:16px;
+    }
+
+    .title{
+      margin:0;
+      font-size:42px;
+      line-height:1.1;
+      letter-spacing:-0.03em;
+      font-weight:900;
+    }
+
+    .desc{
+      margin:14px 0 0;
+      color:var(--muted);
+      line-height:1.8;
+      font-size:16px;
+    }
+
+    .section{
+      margin-top:26px;
+      padding-top:22px;
+      border-top:1px solid rgba(23,59,52,.08);
+    }
+
+    .section-title{
+      margin:0 0 14px;
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .info-grid{
+      display:grid;
+      grid-template-columns:160px 1fr;
+      gap:12px 16px;
+    }
+
+    .info-grid dt{
+      margin:0;
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .info-grid dd{
+      margin:0;
+      font-weight:700;
+      word-break:break-all;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:30px;
+    }
+
+    .btn{
+      height:46px;
+      padding:0 18px;
+      border-radius:999px;
+      border:1px solid #d7ddd8;
+      background:#fff;
+      color:var(--text);
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .btn-primary{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+
+    .login-user-box{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:16px 18px;
+      border:1px solid rgba(23,59,52,.08);
+      border-radius:18px;
+      background:#fff;
+    }
+
+    .login-user-box strong{
+      font-size:18px;
+    }
+
+    .login-user-box span{
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    @media (max-width: 720px){
+      .page{
+        padding:22px 14px 36px;
       }
-      .result-actions{
+
+      .title{
+        font-size:34px;
+      }
+
+      .info-grid{
+        grid-template-columns:1fr;
+        gap:6px;
+      }
+
+      .actions{
         justify-content:stretch;
       }
-      .result-actions .btn{
+
+      .actions .btn,
+      .topbar .mini-link-btn{
         width:100%;
       }
     }
   </style>
 </head>
 <body>
-  <main class="result-wrap">
-    <section class="result-card">
-      <h1 class="result-title">예약이 완료되었습니다.</h1>
-      <p class="result-desc">아래 예약 정보를 확인해 주세요.</p>
+  <main class="page">
+    <div class="topbar">
+      <div>
+        <a href="./index.html" class="mini-link-btn">예약 페이지</a>
+      </div>
+      <div class="auth-mini-actions" id="authStatusArea"></div>
+    </div>
 
-      <dl class="result-grid" id="resultInfo">
-        <dt>예약번호</dt>
-        <dd id="r-reservationNo">-</dd>
+    <section class="card">
+      <div class="eyebrow">예약 완료</div>
+      <h1 class="title">예약이 정상적으로 접수되었습니다.</h1>
+      <p class="desc">
+        아래 예약 정보를 확인해 주세요.<br />
+        승인 상태와 일정 반영 여부는 안내 메일 또는 예약조회 페이지에서 다시 확인할 수 있습니다.
+      </p>
 
-        <dt>예약구분</dt>
-        <dd id="r-bookingType">-</dd>
+      <section class="section">
+        <h2 class="section-title">예약 정보</h2>
+        <dl class="info-grid">
+          <dt>예약번호</dt>
+          <dd id="r-reservationNo">-</dd>
 
-        <dt>공간</dt>
-        <dd id="r-resourceName">-</dd>
+          <dt>예약구분</dt>
+          <dd id="r-bookingType">-</dd>
 
-        <dt>이용일</dt>
-        <dd id="r-dateText">-</dd>
+          <dt>공간</dt>
+          <dd id="r-resourceName">-</dd>
 
-        <dt>담당자</dt>
-        <dd id="r-contactName">-</dd>
+          <dt>이용일</dt>
+          <dd id="r-dateText">-</dd>
 
-        <dt>연락처</dt>
-        <dd id="r-phone">-</dd>
+          <dt>담당자</dt>
+          <dd id="r-contactName">-</dd>
 
-        <dt>이메일</dt>
-        <dd id="r-email">-</dd>
+          <dt>연락처</dt>
+          <dd id="r-phone">-</dd>
 
-        <dt>사용목적</dt>
-        <dd id="r-purpose">-</dd>
+          <dt>이메일</dt>
+          <dd id="r-email">-</dd>
 
-        <dt>예상/결제금액</dt>
-        <dd id="r-amount">-</dd>
-      </dl>
+          <dt>사용목적</dt>
+          <dd id="r-purpose">-</dd>
 
-      <div class="result-actions">
-        <a class="btn btn-secondary" id="btnLookup" href="#">예약조회</a>
+          <dt>인원</dt>
+          <dd id="r-headcount">-</dd>
+
+          <dt>정산방법</dt>
+          <dd id="r-settlementMethod">-</dd>
+
+          <dt>예상/결제금액</dt>
+          <dd id="r-amount">-</dd>
+
+          <dt>처리상태</dt>
+          <dd id="r-status">-</dd>
+        </dl>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">로그인 사용자</h2>
+        <div class="login-user-box" id="loginUserBox">
+          <strong>확인 중...</strong>
+          <span>로그인 정보 확인 중입니다.</span>
+        </div>
+      </section>
+
+      <div class="actions" id="actionButtons">
+        <a class="btn" id="btnLookup" href="#">예약조회</a>
+        <a class="btn" id="btnRetry" href="./index.html">예약 다시하기</a>
         <a class="btn btn-primary" id="btnHome" href="#">홈으로</a>
       </div>
     </section>
   </main>
 
   <script src="./assets/config.js"></script>
+  <script src="./assets/auth.js"></script>
   <script>
     (function () {
       const cfg = window.HS_CONFIG || {};
-      const data = JSON.parse(sessionStorage.getItem('hs_last_reservation') || '{}');
+      const stored = JSON.parse(sessionStorage.getItem('hs_last_reservation') || '{}');
 
-      const reservation = data.reservation || data.booking || data.appsScript?.reservation || {};
-      const reservationNo = data.reservationNo || data.appsScript?.reservationNo || reservation.reservationNo || '-';
+      function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || '-';
+      }
 
-      const bookingTypeMap = {
-        meeting: '회의실 예약',
-        dorm: '연수원 예약'
-      };
+      function formatAmount(value) {
+        const num = Number(value || 0);
+        if (!num) return '0원';
+        return `${num.toLocaleString('ko-KR')}원`;
+      }
 
-      const dateText = reservation.bookingType === 'meeting'
-        ? (reservation.startDate || '-')
-        : [reservation.startDate, reservation.endDate].filter(Boolean).join(' ~ ') || '-';
+      function bookingTypeLabel(type) {
+        return type === 'dorm' ? '연수원 예약' : '회의실 예약';
+      }
 
-      document.getElementById('r-reservationNo').textContent = reservationNo;
-      document.getElementById('r-bookingType').textContent = bookingTypeMap[reservation.bookingType] || '-';
-      document.getElementById('r-resourceName').textContent = reservation.resourceName || '-';
-      document.getElementById('r-dateText').textContent = dateText;
-      document.getElementById('r-contactName').textContent = reservation.contactName || '-';
-      document.getElementById('r-phone').textContent = reservation.phone || '-';
-      document.getElementById('r-email').textContent = reservation.email || '-';
-      document.getElementById('r-purpose').textContent = reservation.purpose || '-';
-      document.getElementById('r-amount').textContent = reservation.totalAmount != null
-        ? `${Number(reservation.totalAmount).toLocaleString('ko-KR')}원`
-        : '-';
+      async function renderAuthStatus() {
+        const area = document.getElementById('authStatusArea');
+        const loginUserBox = document.getElementById('loginUserBox');
+        const actionButtons = document.getElementById('actionButtons');
 
-      document.getElementById('btnHome').href = cfg.homeUrl || 'https://www.hansalimnc.co.kr';
-      document.getElementById('btnLookup').href = cfg.lookupUrl || './lookup.html';
+        if (!window.HSAuth || !window.HSAuth.isLoggedIn()) {
+          area.innerHTML = `
+            <a href="./login.html" class="mini-link-btn">로그인</a>
+            <a href="./signup.html" class="mini-link-btn primary">회원가입</a>
+          `;
+          loginUserBox.innerHTML = `
+            <strong>비로그인 상태</strong>
+            <span>로그인하지 않아도 예약 결과는 확인할 수 있습니다.</span>
+          `;
+          return;
+        }
+
+        try {
+          const me = await window.HSAuth.getMe();
+          const user = me.user || {};
+
+          area.innerHTML = `
+            ${user.role === 'admin' ? `<a href="./admin-users.html" class="mini-link-btn">관리자 페이지</a>` : ''}
+            <button type="button" class="mini-link-btn" id="btnLogout">로그아웃</button>
+          `;
+
+          loginUserBox.innerHTML = `
+            <strong>${user.name || '-'}</strong>
+            <span>${user.affiliation || '-'}</span>
+            <span>${user.phone || '-'}</span>
+          `;
+
+          if (user.role === 'admin') {
+            const adminBtn = document.createElement('a');
+            adminBtn.href = './admin-users.html';
+            adminBtn.className = 'btn';
+            adminBtn.textContent = '관리자 페이지';
+            actionButtons.prepend(adminBtn);
+          }
+
+          const btnLogout = document.getElementById('btnLogout');
+          if (btnLogout) {
+            btnLogout.addEventListener('click', async () => {
+              await window.HSAuth.logout();
+              window.location.href = './login.html';
+            });
+          }
+        } catch (err) {
+          area.innerHTML = `
+            <a href="./login.html" class="mini-link-btn">로그인</a>
+            <a href="./signup.html" class="mini-link-btn primary">회원가입</a>
+          `;
+          loginUserBox.innerHTML = `
+            <strong>로그인 정보 확인 실패</strong>
+            <span>다시 로그인해 주세요.</span>
+          `;
+        }
+      }
+
+      function renderReservation() {
+        const reservation = stored.reservation || stored.booking || stored.appsScript?.reservation || {};
+        const reservationNo = stored.reservationNo || stored.appsScript?.reservationNo || reservation.reservationNo || '-';
+        const status = stored.status || stored.appsScript?.status || '-';
+
+        const dateText = reservation.bookingType === 'meeting'
+          ? (reservation.startDate || '-')
+          : [reservation.startDate, reservation.endDate].filter(Boolean).join(' ~ ') || '-';
+
+        setText('r-reservationNo', reservationNo);
+        setText('r-bookingType', bookingTypeLabel(reservation.bookingType));
+        setText('r-resourceName', reservation.resourceName || '-');
+        setText('r-dateText', dateText);
+        setText('r-contactName', reservation.contactName || '-');
+        setText('r-phone', reservation.phone || '-');
+        setText('r-email', reservation.email || '-');
+        setText('r-purpose', reservation.purpose || '-');
+        setText('r-headcount', reservation.bookingType === 'dorm' ? String(reservation.headcount || 0) : '해당 없음');
+        setText('r-settlementMethod', reservation.settlementMethod || (reservation.bookingType === 'dorm' ? '카드결제' : '해당 없음'));
+        setText('r-amount', formatAmount(reservation.totalAmount));
+        setText('r-status', status);
+      }
+
+      function setLinks() {
+        const homeUrl = cfg.homeUrl || cfg.homepageUrl || 'https://www.hansalimnc.co.kr';
+        const lookupUrl = cfg.lookupUrl || './lookup.html';
+
+        document.getElementById('btnHome').href = homeUrl;
+        document.getElementById('btnLookup').href = lookupUrl;
+      }
+
+      renderReservation();
+      setLinks();
+      renderAuthStatus();
     })();
   </script>
 </body>
