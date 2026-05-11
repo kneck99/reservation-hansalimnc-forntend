@@ -1,6 +1,4 @@
 window.HSGuard = (function () {
-  const cfg = window.HS_CONFIG || {};
-
   function redirectToLogin(nextUrl) {
     const next = encodeURIComponent(nextUrl || window.location.pathname);
     window.location.href = `./login.html?next=${next}`;
@@ -45,13 +43,11 @@ window.HSGuard = (function () {
       affiliationInput.value = user.affiliation || '';
     }
 
-    const userNameEls = document.querySelectorAll('[data-user-name]');
-    userNameEls.forEach(el => {
+    document.querySelectorAll('[data-user-name]').forEach(el => {
       el.textContent = user.name || '';
     });
 
-    const userAffiliationEls = document.querySelectorAll('[data-user-affiliation]');
-    userAffiliationEls.forEach(el => {
+    document.querySelectorAll('[data-user-affiliation]').forEach(el => {
       el.textContent = user.affiliation || '';
     });
   }
@@ -62,8 +58,10 @@ window.HSGuard = (function () {
 
     if (!window.HSAuth.isLoggedIn()) {
       box.innerHTML = `
-        <a href="./login.html" class="btn btn-secondary">로그인</a>
-        <a href="./signup.html" class="btn btn-primary">회원가입</a>
+        <div class="auth-mini-actions">
+          <a href="./login.html" class="mini-link-btn">로그인</a>
+          <a href="./signup.html" class="mini-link-btn primary">회원가입</a>
+        </div>
       `;
       return;
     }
@@ -71,11 +69,18 @@ window.HSGuard = (function () {
     try {
       const result = await window.HSAuth.getMe();
       const user = result.user || {};
+      const isAdmin = user.role === 'admin';
 
       box.innerHTML = `
         <div class="auth-status-box">
-          <span><strong>${user.name || ''}</strong>${user.affiliation ? ` · ${user.affiliation}` : ''}</span>
-          <button type="button" class="btn btn-secondary" id="btnLogout">로그아웃</button>
+          <div class="auth-status-user">
+            <strong>${user.name || ''}</strong>
+            <span>${user.affiliation ? `${user.affiliation}` : ''}</span>
+          </div>
+          <div class="auth-status-actions">
+            ${isAdmin ? `<a href="./admin-users.html" class="mini-link-btn">관리자 페이지</a>` : ''}
+            <button type="button" class="mini-link-btn" id="btnLogout">로그아웃</button>
+          </div>
         </div>
       `;
 
@@ -89,8 +94,10 @@ window.HSGuard = (function () {
     } catch (err) {
       window.HSAuth.clearToken();
       box.innerHTML = `
-        <a href="./login.html" class="btn btn-secondary">로그인</a>
-        <a href="./signup.html" class="btn btn-primary">회원가입</a>
+        <div class="auth-mini-actions">
+          <a href="./login.html" class="mini-link-btn">로그인</a>
+          <a href="./signup.html" class="mini-link-btn primary">회원가입</a>
+        </div>
       `;
     }
   }
