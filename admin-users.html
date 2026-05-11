@@ -34,9 +34,9 @@
     }
 
     .page{
-      max-width:1180px;
+      max-width:1200px;
       margin:0 auto;
-      padding:34px 18px 48px;
+      padding:30px 18px 48px;
     }
 
     .topbar{
@@ -51,7 +51,7 @@
     .title{
       margin:0;
       font-size:42px;
-      line-height:1.1;
+      line-height:1.08;
       letter-spacing:-0.03em;
       font-weight:900;
     }
@@ -71,13 +71,13 @@
     }
 
     .btn{
-      height:46px;
-      padding:0 18px;
+      height:44px;
+      padding:0 16px;
       border-radius:999px;
       border:1px solid #d7ddd8;
       background:#fff;
       color:var(--text);
-      font-size:15px;
+      font-size:14px;
       font-weight:800;
       cursor:pointer;
       text-decoration:none;
@@ -97,9 +97,9 @@
     }
 
     .btn-danger{
-      background:#fff;
       color:var(--danger);
-      border-color:#e7caca;
+      border-color:#e4c7c7;
+      background:#fff;
     }
 
     .btn:disabled{
@@ -107,13 +107,21 @@
       cursor:not-allowed;
     }
 
-    .status-card{
+    .panel{
       background:var(--card);
       border:1px solid rgba(23,59,52,.08);
       border-radius:22px;
-      padding:18px 20px;
-      margin-bottom:20px;
       box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:18px;
+    }
+
+    .status-card{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:center;
+      flex-wrap:wrap;
     }
 
     .status-title{
@@ -125,6 +133,61 @@
     .status-value{
       font-size:20px;
       font-weight:900;
+    }
+
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .tab-btn{
+      height:42px;
+      padding:0 16px;
+      border-radius:999px;
+      border:1px solid #d7ddd8;
+      background:#fff;
+      color:var(--text);
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .tab-btn.active{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+
+    .search-box{
+      flex:1;
+      min-width:260px;
+      max-width:360px;
+    }
+
+    .search-box input{
+      width:100%;
+      height:44px;
+      border-radius:999px;
+      border:1px solid #d7ddd8;
+      background:#fff;
+      padding:0 16px;
+      font-size:14px;
+      color:var(--text);
+      outline:none;
+    }
+
+    .search-box input:focus{
+      border-color:#87a898;
+      box-shadow:0 0 0 4px rgba(17,102,79,.07);
     }
 
     .msg{
@@ -145,6 +208,12 @@
       background:var(--danger-bg);
       color:var(--danger);
       border:1px solid var(--danger-line);
+    }
+
+    .summary{
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:14px;
     }
 
     .grid{
@@ -187,11 +256,27 @@
       align-items:center;
       padding:7px 12px;
       border-radius:999px;
-      background:#eef3ed;
-      color:#35554e;
       font-size:12px;
       font-weight:800;
       white-space:nowrap;
+      border:1px solid transparent;
+    }
+
+    .badge.pending{
+      background:#eef3ed;
+      color:#35554e;
+    }
+
+    .badge.approved{
+      background:#edf7f0;
+      color:#1c5b34;
+      border-color:#cfe5d5;
+    }
+
+    .badge.rejected{
+      background:#fff1f0;
+      color:#9a2f2f;
+      border-color:#f0c7c3;
     }
 
     .meta{
@@ -231,6 +316,7 @@
       color:var(--muted);
       font-size:17px;
       line-height:1.8;
+      box-shadow:var(--shadow);
     }
 
     .blocked{
@@ -271,25 +357,28 @@
         font-size:32px;
       }
 
+      .toolbar{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .search-box{
+        max-width:none;
+      }
+
       .meta{
         grid-template-columns:1fr;
         gap:4px;
       }
 
-      .card-actions{
+      .card-actions,
+      .top-actions{
         justify-content:stretch;
       }
 
       .card-actions .btn,
-      .top-actions .btn{
-        width:100%;
-      }
-
-      .topbar{
-        gap:14px;
-      }
-
-      .top-actions{
+      .top-actions .btn,
+      .tabs .tab-btn{
         width:100%;
       }
     }
@@ -301,7 +390,7 @@
       <div>
         <h1 class="title">회원 승인 관리</h1>
         <p class="desc">
-          승인 대기 중인 관계자 계정을 확인하고 승인 또는 반려할 수 있습니다.
+          회원가입 신청 내역을 상태별로 확인하고 승인 또는 반려할 수 있습니다.
         </p>
       </div>
 
@@ -312,12 +401,38 @@
       </div>
     </header>
 
-    <section class="status-card">
-      <div class="status-title">현재 관리자</div>
-      <div class="status-value" id="adminInfo">-</div>
+    <section class="panel status-card">
+      <div>
+        <div class="status-title">현재 관리자</div>
+        <div class="status-value" id="adminInfo">-</div>
+      </div>
+      <div>
+        <div class="status-title">현재 보기</div>
+        <div class="status-value" id="currentViewLabel">승인 대기</div>
+      </div>
     </section>
 
     <div id="messageBox" class="msg"></div>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div class="tabs">
+          <button type="button" class="tab-btn active" data-status-tab="pending">승인 대기</button>
+          <button type="button" class="tab-btn" data-status-tab="approved">승인 완료</button>
+          <button type="button" class="tab-btn" data-status-tab="rejected">반려</button>
+        </div>
+
+        <label class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="이름, 아이디, 소속, 연락처 검색"
+          />
+        </label>
+      </div>
+    </section>
+
+    <div class="summary" id="summaryText"></div>
 
     <section id="userList" class="grid"></section>
   </main>
@@ -345,6 +460,13 @@
       const btnRefresh = document.getElementById('btnRefresh');
       const btnLogout = document.getElementById('btnLogout');
       const box = document.getElementById('messageBox');
+      const searchInput = document.getElementById('searchInput');
+      const summaryText = document.getElementById('summaryText');
+      const currentViewLabel = document.getElementById('currentViewLabel');
+      const tabButtons = Array.from(document.querySelectorAll('[data-status-tab]'));
+
+      let currentStatus = 'pending';
+      let allUsers = [];
 
       function showMessage(type, text) {
         box.className = `msg show ${type}`;
@@ -370,55 +492,96 @@
           .replace(/'/g, '&#039;');
       }
 
-      async function loadPendingUsers() {
-        clearMessage();
-        userList.innerHTML = '<div class="empty">불러오는 중입니다...</div>';
+      function statusLabel(status) {
+        if (status === 'approved') return '승인 완료';
+        if (status === 'rejected') return '반려';
+        return '승인 대기';
+      }
 
-        try {
-          const result = await window.HSAuth.authFetch('/api/admin/users?status=pending');
-          const users = result.users || [];
+      function filterUsers() {
+        const q = (searchInput.value || '').trim().toLowerCase();
 
-          if (!users.length) {
-            userList.innerHTML = `
-              <div class="empty" style="grid-column:1 / -1;">
-                현재 승인 대기 중인 회원이 없습니다.
+        if (!q) return allUsers;
+
+        return allUsers.filter(user => {
+          return [
+            user.name,
+            user.login_id,
+            user.phone,
+            user.affiliation,
+            user.role,
+            user.status
+          ].some(v => String(v || '').toLowerCase().includes(q));
+        });
+      }
+
+      function renderUsers() {
+        const users = filterUsers();
+        currentViewLabel.textContent = statusLabel(currentStatus);
+        summaryText.textContent = `총 ${users.length}명`;
+
+        if (!users.length) {
+          userList.innerHTML = `
+            <div class="empty" style="grid-column:1 / -1;">
+              ${searchInput.value.trim()
+                ? '검색 결과가 없습니다.'
+                : `현재 ${statusLabel(currentStatus)} 상태의 회원이 없습니다.`}
+            </div>
+          `;
+          return;
+        }
+
+        userList.innerHTML = users.map(user => `
+          <article class="user-card">
+            <div class="user-head">
+              <div>
+                <h2 class="user-name">${escapeHtml(user.name)}</h2>
+                <div class="user-login">@${escapeHtml(user.login_id)}</div>
               </div>
-            `;
-            return;
-          }
+              <span class="badge ${escapeHtml(user.status)}">${escapeHtml(statusLabel(user.status))}</span>
+            </div>
 
-          userList.innerHTML = users.map(user => `
-            <article class="user-card">
-              <div class="user-head">
-                <div>
-                  <h2 class="user-name">${escapeHtml(user.name)}</h2>
-                  <div class="user-login">@${escapeHtml(user.login_id)}</div>
-                </div>
-                <span class="badge">승인 대기</span>
-              </div>
+            <dl class="meta">
+              <dt>전화번호</dt>
+              <dd>${escapeHtml(user.phone)}</dd>
 
-              <dl class="meta">
-                <dt>전화번호</dt>
-                <dd>${escapeHtml(user.phone)}</dd>
+              <dt>소속</dt>
+              <dd>${escapeHtml(user.affiliation)}</dd>
 
-                <dt>소속</dt>
-                <dd>${escapeHtml(user.affiliation)}</dd>
+              <dt>권한</dt>
+              <dd>${escapeHtml(user.role)}</dd>
 
-                <dt>권한</dt>
-                <dd>${escapeHtml(user.role)}</dd>
+              <dt>가입일시</dt>
+              <dd>${escapeHtml(user.created_at)}</dd>
+            </dl>
 
-                <dt>가입일시</dt>
-                <dd>${escapeHtml(user.created_at)}</dd>
-              </dl>
-
-              <div class="card-actions">
+            <div class="card-actions">
+              ${user.status === 'pending' ? `
                 <button type="button" class="btn btn-danger" data-reject="${user.id}">반려</button>
                 <button type="button" class="btn btn-primary" data-approve="${user.id}">승인</button>
-              </div>
-            </article>
-          `).join('');
+              ` : ''}
+            </div>
+          </article>
+        `).join('');
 
-          bindActionButtons();
+        bindActionButtons();
+      }
+
+      function setCardButtonsDisabled(userId, disabled) {
+        const approveBtn = document.querySelector(`[data-approve="${userId}"]`);
+        const rejectBtn = document.querySelector(`[data-reject="${userId}"]`);
+        if (approveBtn) approveBtn.disabled = disabled;
+        if (rejectBtn) rejectBtn.disabled = disabled;
+      }
+
+      async function loadUsers() {
+        clearMessage();
+        userList.innerHTML = `<div class="empty" style="grid-column:1 / -1;">불러오는 중입니다...</div>`;
+
+        try {
+          const result = await window.HSAuth.authFetch(`/api/admin/users?status=${encodeURIComponent(currentStatus)}`);
+          allUsers = result.users || [];
+          renderUsers();
         } catch (err) {
           userList.innerHTML = `
             <div class="empty" style="grid-column:1 / -1;">
@@ -427,13 +590,6 @@
             </div>
           `;
         }
-      }
-
-      function setCardButtonsDisabled(userId, disabled) {
-        const approveBtn = document.querySelector(`[data-approve="${userId}"]`);
-        const rejectBtn = document.querySelector(`[data-reject="${userId}"]`);
-        if (approveBtn) approveBtn.disabled = disabled;
-        if (rejectBtn) rejectBtn.disabled = disabled;
       }
 
       async function approveUser(userId) {
@@ -447,7 +603,7 @@
           });
 
           showMessage('success', result.message || '사용자 승인이 완료되었습니다.');
-          await loadPendingUsers();
+          await loadUsers();
         } catch (err) {
           showMessage('error', err.message || '사용자 승인 중 오류가 발생했습니다.');
           setCardButtonsDisabled(userId, false);
@@ -465,7 +621,7 @@
           });
 
           showMessage('success', result.message || '사용자 반려가 완료되었습니다.');
-          await loadPendingUsers();
+          await loadUsers();
         } catch (err) {
           showMessage('error', err.message || '사용자 반려 중 오류가 발생했습니다.');
           setCardButtonsDisabled(userId, false);
@@ -490,6 +646,23 @@
         });
       }
 
+      function bindTabs() {
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const status = btn.getAttribute('data-status-tab');
+            if (!status || status === currentStatus) return;
+
+            currentStatus = status;
+            tabButtons.forEach(b => b.classList.toggle('active', b === btn));
+            await loadUsers();
+          });
+        });
+      }
+
+      function bindSearch() {
+        searchInput.addEventListener('input', renderUsers);
+      }
+
       async function init() {
         if (!window.HSAuth.isLoggedIn()) {
           setBlocked();
@@ -509,14 +682,16 @@
           page.style.display = 'block';
           blockedBox.style.display = 'none';
 
-          await loadPendingUsers();
-
-          btnRefresh.addEventListener('click', loadPendingUsers);
+          bindTabs();
+          bindSearch();
+          btnRefresh.addEventListener('click', loadUsers);
 
           btnLogout.addEventListener('click', async () => {
             await window.HSAuth.logout();
             window.location.href = './login.html';
           });
+
+          await loadUsers();
         } catch (err) {
           setBlocked();
         }
