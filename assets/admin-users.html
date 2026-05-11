@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회원 승인 관리 | 한살림 농업살림센터 예약</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <style>
+    :root{
+      --bg:#f3f1e8;
+      --card:#fcfbf7;
+      --line:#d8ddd7;
+      --text:#173b34;
+      --muted:#6f786f;
+      --primary:#11664f;
+      --primary-dark:#0d5a45;
+      --danger:#9f3939;
+      --danger-bg:#fff1f0;
+      --danger-line:#f0c7c3;
+      --success-bg:#edf7f0;
+      --success-text:#1c5b34;
+      --success-line:#cfe5d5;
+      --shadow:0 12px 30px rgba(0,40,27,.06);
+      --radius:26px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, sans-serif;
+    }
+
+    .page{
+      max-width:1180px;
+      margin:0 auto;
+      padding:34px 18px 48px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:20px;
+      margin-bottom:22px;
+      flex-wrap:wrap;
+    }
+
+    .title{
+      margin:0;
+      font-size:42px;
+      line-height:1.1;
+      letter-spacing:-0.03em;
+      font-weight:900;
+    }
+
+    .desc{
+      margin:12px 0 0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:16px;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .btn{
+      height:46px;
+      padding:0 18px;
+      border-radius:999px;
+      border:1px solid #d7ddd8;
+      background:#fff;
+      color:var(--text);
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .btn-primary{
+      background:var(--primary);
+      color:#fff;
+      border-color:var(--primary);
+    }
+
+    .btn-primary:hover{
+      background:var(--primary-dark);
+    }
+
+    .btn-danger{
+      background:#fff;
+      color:var(--danger);
+      border-color:#e7caca;
+    }
+
+    .btn:disabled{
+      opacity:.58;
+      cursor:not-allowed;
+    }
+
+    .status-card{
+      background:var(--card);
+      border:1px solid rgba(23,59,52,.08);
+      border-radius:22px;
+      padding:18px 20px;
+      margin-bottom:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .status-title{
+      font-size:14px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .status-value{
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .msg{
+      margin-bottom:18px;
+      padding:14px 16px;
+      border-radius:16px;
+      display:none;
+      line-height:1.7;
+    }
+
+    .msg.show{ display:block; }
+    .msg.success{
+      background:var(--success-bg);
+      color:var(--success-text);
+      border:1px solid var(--success-line);
+    }
+    .msg.error{
+      background:var(--danger-bg);
+      color:var(--danger);
+      border:1px solid var(--danger-line);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:18px;
+    }
+
+    .user-card{
+      background:var(--card);
+      border:1px solid rgba(23,59,52,.08);
+      border-radius:22px;
+      padding:22px 22px 18px;
+      box-shadow:var(--shadow);
+    }
+
+    .user-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .user-name{
+      margin:0;
+      font-size:24px;
+      font-weight:900;
+      line-height:1.2;
+    }
+
+    .user-login{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 12px;
+      border-radius:999px;
+      background:#eef3ed;
+      color:#35554e;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns:110px 1fr;
+      gap:10px 12px;
+      margin:16px 0 18px;
+      font-size:15px;
+      line-height:1.6;
+    }
+
+    .meta dt{
+      margin:0;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .meta dd{
+      margin:0;
+      word-break:break-all;
+      font-weight:700;
+    }
+
+    .card-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .empty{
+      background:var(--card);
+      border:1px dashed rgba(23,59,52,.18);
+      border-radius:22px;
+      padding:48px 20px;
+      text-align:center;
+      color:var(--muted);
+      font-size:17px;
+      line-height:1.8;
+    }
+
+    .blocked{
+      max-width:760px;
+      margin:48px auto;
+      background:var(--card);
+      border:1px solid rgba(23,59,52,.08);
+      border-radius:24px;
+      padding:28px 24px;
+      text-align:center;
+      box-shadow:var(--shadow);
+    }
+
+    .blocked h2{
+      margin:0 0 12px;
+      font-size:34px;
+      font-weight:900;
+    }
+
+    .blocked p{
+      margin:0 0 22px;
+      color:var(--muted);
+      line-height:1.8;
+    }
+
+    @media (max-width: 900px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 720px){
+      .page{
+        padding:22px 14px 36px;
+      }
+
+      .title{
+        font-size:32px;
+      }
+
+      .meta{
+        grid-template-columns:1fr;
+        gap:4px;
+      }
+
+      .card-actions{
+        justify-content:stretch;
+      }
+
+      .card-actions .btn,
+      .top-actions .btn{
+        width:100%;
+      }
+
+      .topbar{
+        gap:14px;
+      }
+
+      .top-actions{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="adminPage" style="display:none;">
+    <header class="topbar">
+      <div>
+        <h1 class="title">회원 승인 관리</h1>
+        <p class="desc">
+          승인 대기 중인 관계자 계정을 확인하고 승인 또는 반려할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="top-actions">
+        <a href="./index.html" class="btn">예약 페이지</a>
+        <button type="button" class="btn" id="btnRefresh">새로고침</button>
+        <button type="button" class="btn btn-primary" id="btnLogout">로그아웃</button>
+      </div>
+    </header>
+
+    <section class="status-card">
+      <div class="status-title">현재 관리자</div>
+      <div class="status-value" id="adminInfo">-</div>
+    </section>
+
+    <div id="messageBox" class="msg"></div>
+
+    <section id="userList" class="grid"></section>
+  </main>
+
+  <section class="blocked" id="blockedBox" style="display:none;">
+    <h2>접근 권한이 없습니다</h2>
+    <p>
+      이 페이지는 관리자 계정만 사용할 수 있습니다.<br />
+      관리자 계정으로 로그인한 뒤 다시 접속해 주세요.
+    </p>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <a href="./login.html" class="btn btn-primary">로그인 페이지로 이동</a>
+      <a href="./index.html" class="btn">예약 페이지로 이동</a>
+    </div>
+  </section>
+
+  <script src="./assets/config.js"></script>
+  <script src="./assets/auth.js"></script>
+  <script>
+    (function () {
+      const page = document.getElementById('adminPage');
+      const blockedBox = document.getElementById('blockedBox');
+      const adminInfo = document.getElementById('adminInfo');
+      const userList = document.getElementById('userList');
+      const btnRefresh = document.getElementById('btnRefresh');
+      const btnLogout = document.getElementById('btnLogout');
+      const box = document.getElementById('messageBox');
+
+      function showMessage(type, text) {
+        box.className = `msg show ${type}`;
+        box.textContent = text;
+      }
+
+      function clearMessage() {
+        box.className = 'msg';
+        box.textContent = '';
+      }
+
+      function setBlocked() {
+        page.style.display = 'none';
+        blockedBox.style.display = 'block';
+      }
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      async function loadPendingUsers() {
+        clearMessage();
+        userList.innerHTML = '<div class="empty">불러오는 중입니다...</div>';
+
+        try {
+          const result = await window.HSAuth.authFetch('/api/admin/users?status=pending');
+          const users = result.users || [];
+
+          if (!users.length) {
+            userList.innerHTML = `
+              <div class="empty" style="grid-column:1 / -1;">
+                현재 승인 대기 중인 회원이 없습니다.
+              </div>
+            `;
+            return;
+          }
+
+          userList.innerHTML = users.map(user => `
+            <article class="user-card">
+              <div class="user-head">
+                <div>
+                  <h2 class="user-name">${escapeHtml(user.name)}</h2>
+                  <div class="user-login">@${escapeHtml(user.login_id)}</div>
+                </div>
+                <span class="badge">승인 대기</span>
+              </div>
+
+              <dl class="meta">
+                <dt>전화번호</dt>
+                <dd>${escapeHtml(user.phone)}</dd>
+
+                <dt>소속</dt>
+                <dd>${escapeHtml(user.affiliation)}</dd>
+
+                <dt>권한</dt>
+                <dd>${escapeHtml(user.role)}</dd>
+
+                <dt>가입일시</dt>
+                <dd>${escapeHtml(user.created_at)}</dd>
+              </dl>
+
+              <div class="card-actions">
+                <button type="button" class="btn btn-danger" data-reject="${user.id}">반려</button>
+                <button type="button" class="btn btn-primary" data-approve="${user.id}">승인</button>
+              </div>
+            </article>
+          `).join('');
+
+          bindActionButtons();
+        } catch (err) {
+          userList.innerHTML = `
+            <div class="empty" style="grid-column:1 / -1;">
+              목록을 불러오지 못했습니다.<br />
+              ${escapeHtml(err.message || '알 수 없는 오류')}
+            </div>
+          `;
+        }
+      }
+
+      function setCardButtonsDisabled(userId, disabled) {
+        const approveBtn = document.querySelector(`[data-approve="${userId}"]`);
+        const rejectBtn = document.querySelector(`[data-reject="${userId}"]`);
+        if (approveBtn) approveBtn.disabled = disabled;
+        if (rejectBtn) rejectBtn.disabled = disabled;
+      }
+
+      async function approveUser(userId) {
+        setCardButtonsDisabled(userId, true);
+        clearMessage();
+
+        try {
+          const result = await window.HSAuth.authFetch('/api/admin/users/approve', {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+          });
+
+          showMessage('success', result.message || '사용자 승인이 완료되었습니다.');
+          await loadPendingUsers();
+        } catch (err) {
+          showMessage('error', err.message || '사용자 승인 중 오류가 발생했습니다.');
+          setCardButtonsDisabled(userId, false);
+        }
+      }
+
+      async function rejectUser(userId) {
+        setCardButtonsDisabled(userId, true);
+        clearMessage();
+
+        try {
+          const result = await window.HSAuth.authFetch('/api/admin/users/reject', {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+          });
+
+          showMessage('success', result.message || '사용자 반려가 완료되었습니다.');
+          await loadPendingUsers();
+        } catch (err) {
+          showMessage('error', err.message || '사용자 반려 중 오류가 발생했습니다.');
+          setCardButtonsDisabled(userId, false);
+        }
+      }
+
+      function bindActionButtons() {
+        document.querySelectorAll('[data-approve]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const userId = Number(btn.getAttribute('data-approve'));
+            if (!userId) return;
+            approveUser(userId);
+          });
+        });
+
+        document.querySelectorAll('[data-reject]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const userId = Number(btn.getAttribute('data-reject'));
+            if (!userId) return;
+            rejectUser(userId);
+          });
+        });
+      }
+
+      async function init() {
+        if (!window.HSAuth.isLoggedIn()) {
+          setBlocked();
+          return;
+        }
+
+        try {
+          const me = await window.HSAuth.getMe();
+          const user = me.user || {};
+
+          if (user.role !== 'admin') {
+            setBlocked();
+            return;
+          }
+
+          adminInfo.textContent = `${user.name || ''}${user.affiliation ? ` · ${user.affiliation}` : ''}`;
+          page.style.display = 'block';
+          blockedBox.style.display = 'none';
+
+          await loadPendingUsers();
+
+          btnRefresh.addEventListener('click', loadPendingUsers);
+
+          btnLogout.addEventListener('click', async () => {
+            await window.HSAuth.logout();
+            window.location.href = './login.html';
+          });
+        } catch (err) {
+          setBlocked();
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
