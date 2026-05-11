@@ -13,7 +13,7 @@ window.HS_CONFIG = {
 
   // 예약조회 페이지 주소
   // 아직 없으면 임시로 홈으로 두거나 추후 실제 조회 페이지로 변경
-  lookupUrl: 'https://www.hansalimnc.co.kr',
+  lookupUrl: './lookup.html',
 
   // PortOne 실제 결제 연동용
   portone: {
