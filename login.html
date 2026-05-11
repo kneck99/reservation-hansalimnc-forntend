@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 | 한살림 농업살림센터 예약</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <style>
+    body{
+      margin:0;
+      background:#f4f1e8;
+      color:#173b34;
+      font-family:Arial, sans-serif;
+    }
+    .auth-wrap{
+      max-width:520px;
+      margin:56px auto;
+      padding:0 16px;
+    }
+    .auth-card{
+      background:#fffdf8;
+      border:1px solid rgba(23,59,52,.12);
+      border-radius:24px;
+      padding:28px 24px;
+      box-shadow:0 12px 28px rgba(0,40,27,.06);
+    }
+    .auth-title{
+      margin:0 0 8px;
+      font-size:32px;
+      font-weight:800;
+    }
+    .auth-desc{
+      margin:0 0 24px;
+      color:#66736e;
+      line-height:1.6;
+    }
+    .form-grid{
+      display:grid;
+      gap:16px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .field-label{
+      font-weight:700;
+    }
+    .field input{
+      height:52px;
+      border-radius:14px;
+      border:1px solid #d9ddd7;
+      padding:0 16px;
+      font-size:16px;
+      box-sizing:border-box;
+      width:100%;
+    }
+    .auth-actions{
+      display:flex;
+      gap:12px;
+      justify-content:flex-end;
+      margin-top:24px;
+      flex-wrap:wrap;
+    }
+    .auth-links{
+      display:flex;
+      justify-content:space-between;
+      margin-top:20px;
+      gap:12px;
+      flex-wrap:wrap;
+      font-size:14px;
+    }
+    .msg{
+      margin-top:18px;
+      padding:14px 16px;
+      border-radius:14px;
+      display:none;
+      line-height:1.6;
+    }
+    .msg.show{ display:block; }
+    .msg.success{
+      background:#edf7f0;
+      color:#1c5b34;
+      border:1px solid #cfe7d5;
+    }
+    .msg.error{
+      background:#fff1f0;
+      color:#9a2f2f;
+      border:1px solid #f0c7c3;
+    }
+    .btn{
+      height:48px;
+      padding:0 20px;
+      border-radius:999px;
+      border:1px solid #d9ddd7;
+      background:#fff;
+      cursor:pointer;
+      font-weight:700;
+      font-size:15px;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      color:#173b34;
+      box-sizing:border-box;
+    }
+    .btn-primary{
+      background:#0f5a46;
+      color:#fff;
+      border-color:#0f5a46;
+    }
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <main class="auth-wrap">
+    <section class="auth-card">
+      <h1 class="auth-title">로그인</h1>
+      <p class="auth-desc">
+        승인된 관계자 계정으로 로그인해 주세요.<br />
+        승인 전 계정은 로그인할 수 없습니다.
+      </p>
+
+      <form id="loginForm" class="form-grid">
+        <label class="field">
+          <span class="field-label">아이디</span>
+          <input type="text" id="loginId" name="loginId" placeholder="아이디를 입력해 주세요" required />
+        </label>
+
+        <label class="field">
+          <span class="field-label">비밀번호</span>
+          <input type="password" id="password" name="password" placeholder="비밀번호를 입력해 주세요" required />
+        </label>
+
+        <div class="auth-actions">
+          <button type="submit" class="btn btn-primary" id="btnLogin">로그인</button>
+        </div>
+      </form>
+
+      <div id="messageBox" class="msg"></div>
+
+      <div class="auth-links">
+        <a href="./signup.html">회원가입 신청하기</a>
+        <a href="./index.html">예약 페이지로 이동</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="./assets/config.js"></script>
+  <script src="./assets/auth.js"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('loginForm');
+      const btn = document.getElementById('btnLogin');
+      const box = document.getElementById('messageBox');
+
+      function showMessage(type, text) {
+        box.className = `msg show ${type}`;
+        box.textContent = text;
+      }
+
+      function getNextUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('next') || './index.html';
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.textContent = '처리 중...';
+        box.className = 'msg';
+        box.textContent = '';
+
+        try {
+          const payload = {
+            loginId: document.getElementById('loginId').value.trim(),
+            password: document.getElementById('password').value
+          };
+
+          const result = await window.HSAuth.login(payload);
+          showMessage('success', `${result.user?.name || ''}님, 로그인되었습니다.`);
+
+          setTimeout(() => {
+            window.location.href = getNextUrl();
+          }, 500);
+        } catch (err) {
+          showMessage('error', err.message || '로그인 중 오류가 발생했습니다.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '로그인';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
