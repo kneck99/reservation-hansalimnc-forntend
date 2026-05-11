@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>예약조회 | 한살림 농업살림센터 예약</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <style>
+    body{margin:0;background:#f3f1e8;color:#173b34;font-family:Arial,sans-serif}
+    .wrap{max-width:960px;margin:0 auto;padding:30px 18px 48px}
+    .card{background:#fcfbf7;border:1px solid rgba(23,59,52,.08);border-radius:26px;box-shadow:0 12px 30px rgba(0,40,27,.06);padding:30px 24px}
+    .title{margin:0;font-size:42px;line-height:1.1;font-weight:900;letter-spacing:-.03em}
+    .desc{margin:14px 0 0;color:#6f786f;line-height:1.8;font-size:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+    .field{display:flex;flex-direction:column;gap:8px}.field.full{grid-column:1/-1}
+    .field span{font-size:15px;font-weight:800}
+    .field input{height:52px;border-radius:14px;border:1px solid #d7ddd8;background:#fff;padding:0 16px;font-size:16px;outline:none}
+    .field input:focus{border-color:#87a898;box-shadow:0 0 0 4px rgba(17,102,79,.07)}
+    .actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:24px}
+    .btn{height:46px;padding:0 18px;border-radius:999px;border:1px solid #d7ddd8;background:#fff;color:#173b34;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+    .btn-primary{background:#11664f;color:#fff;border-color:#11664f}
+    .btn:disabled{opacity:.58;cursor:not-allowed}
+    .msg{margin-top:18px;padding:14px 16px;border-radius:16px;display:none;line-height:1.7}
+    .msg.show{display:block}.msg.error{background:#fff1f0;color:#9f3939;border:1px solid #f0c7c3}.msg.success{background:#edf7f0;color:#1c5b34;border:1px solid #cfe5d5}
+    .result{margin-top:26px;padding-top:22px;border-top:1px solid rgba(23,59,52,.08);display:none}.result.show{display:block}
+    .result h2{margin:0 0 16px;font-size:22px;font-weight:900}
+    .info{display:grid;grid-template-columns:160px 1fr;gap:12px 16px}.info dt{margin:0;color:#6f786f;font-weight:800}.info dd{margin:0;font-weight:700;word-break:break-all}
+    .top-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+    .auth-mini-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .mini-link-btn{height:38px;padding:0 14px;border-radius:999px;border:1px solid #d7ddd8;background:#fff;color:#173b34;font-size:13px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+    .mini-link-btn.primary{background:#11664f;color:#fff;border-color:#11664f}
+    @media (max-width:720px){.wrap{padding:22px 14px 36px}.title{font-size:34px}.grid,.info{grid-template-columns:1fr}.actions,.top-actions{justify-content:stretch}.actions .btn,.top-actions .mini-link-btn,.top-actions .btn{width:100%}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top-actions">
+      <a href="./index.html" class="mini-link-btn">예약 페이지</a>
+      <div class="auth-mini-actions" id="authStatusArea"></div>
+    </div>
+
+    <section class="card">
+      <h1 class="title">예약조회</h1>
+      <p class="desc">예약번호, 담당자명, 연락처를 입력하면 현재 예약 상태를 조회할 수 있습니다.</p>
+
+      <form id="lookupForm">
+        <div class="grid">
+          <label class="field">
+            <span>예약번호</span>
+            <input type="text" id="reservationNo" placeholder="예: HS-20260511-0001" required />
+          </label>
+
+          <label class="field">
+            <span>담당자명</span>
+            <input type="text" id="contactName" placeholder="예약자 이름" required />
+          </label>
+
+          <label class="field full">
+            <span>연락처</span>
+            <input type="text" id="phone" placeholder="010-1234-5678" required />
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="btnLookup">조회하기</button>
+        </div>
+      </form>
+
+      <div id="messageBox" class="msg"></div>
+
+      <section id="resultBox" class="result">
+        <h2>조회 결과</h2>
+        <dl class="info">
+          <dt>예약번호</dt><dd id="r-reservationNo">-</dd>
+          <dt>예약유형</dt><dd id="r-type">-</dd>
+          <dt>공간</dt><dd id="r-resourceName">-</dd>
+          <dt>사용일</dt><dd id="r-dateText">-</dd>
+          <dt>담당자</dt><dd id="r-contactName">-</dd>
+          <dt>연락처</dt><dd id="r-phone">-</dd>
+          <dt>이메일</dt><dd id="r-email">-</dd>
+          <dt>사용목적</dt><dd id="r-purpose">-</dd>
+          <dt>숙박인원</dt><dd id="r-headcount">-</dd>
+          <dt>정산방법</dt><dd id="r-settlementMethod">-</dd>
+          <dt>금액</dt><dd id="r-amount">-</dd>
+          <dt>상태</dt><dd id="r-status">-</dd>
+          <dt>대기순번</dt><dd id="r-waitingOrder">-</dd>
+        </dl>
+      </section>
+    </section>
+  </main>
+
+  <script src="./assets/config.js"></script>
+  <script src="./assets/auth.js"></script>
+  <script>
+    (function () {
+      const cfg = window.HS_CONFIG || {};
+      const form = document.getElementById('lookupForm');
+      const btn = document.getElementById('btnLookup');
+      const box = document.getElementById('messageBox');
+      const resultBox = document.getElementById('resultBox');
+
+      function showMessage(type, text) {
+        box.className = `msg show ${type}`;
+        box.textContent = text;
+      }
+
+      function clearMessage() {
+        box.className = 'msg';
+        box.textContent = '';
+      }
+
+      function formatPhone(value) {
+        const digits = String(value || '').replace(/\D/g, '').slice(0, 11);
+        if (digits.length < 4) return digits;
+        if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+      }
+
+      function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || '-';
+      }
+
+      async function renderAuthStatus() {
+        const area = document.getElementById('authStatusArea');
+        if (!window.HSAuth || !window.HSAuth.isLoggedIn()) {
+          area.innerHTML = `<a href="./login.html" class="mini-link-btn">로그인</a><a href="./signup.html" class="mini-link-btn primary">회원가입</a>`;
+          return;
+        }
+
+        try {
+          const me = await window.HSAuth.getMe();
+          const user = me.user || {};
+          area.innerHTML = `
+            ${user.role === 'admin' ? `<a href="./admin-users.html" class="mini-link-btn">관리자 페이지</a>` : ''}
+            <button type="button" class="mini-link-btn" id="btnLogout">로그아웃</button>
+          `;
+
+          if (!document.getElementById('contactName').value) {
+            document.getElementById('contactName').value = user.name || '';
+          }
+          if (!document.getElementById('phone').value) {
+            document.getElementById('phone').value = user.phone || '';
+          }
+
+          document.getElementById('btnLogout')?.addEventListener('click', async () => {
+            await window.HSAuth.logout();
+            window.location.href = './login.html';
+          });
+        } catch (err) {
+          area.innerHTML = `<a href="./login.html" class="mini-link-btn">로그인</a><a href="./signup.html" class="mini-link-btn primary">회원가입</a>`;
+        }
+      }
+
+      document.getElementById('phone').addEventListener('input', (e) => {
+        e.target.value = formatPhone(e.target.value);
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.textContent = '조회 중...';
+        clearMessage();
+        resultBox.classList.remove('show');
+
+        try {
+          const payload = {
+            reservationNo: document.getElementById('reservationNo').value.trim(),
+            contactName: document.getElementById('contactName').value.trim(),
+            phone: document.getElementById('phone').value.trim()
+          };
+
+          const base = (cfg.apiBaseUrl || '').replace(/\/$/, '');
+          const response = await fetch(`${base}/api/lookup-reservation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          if (!response.ok || data.ok === false) {
+            throw new Error(data.error || '예약조회에 실패했습니다.');
+          }
+
+          const r = data.reservation || {};
+          setText('r-reservationNo', r.reservationNo);
+          setText('r-type', r.type === 'dorm' ? '연수원 예약' : '회의실 예약');
+          setText('r-resourceName', r.resourceName);
+          setText('r-dateText', r.type === 'dorm' ? `${r.startDateText || '-'} ~ ${r.endDateText || '-'}` : (r.startDateText || '-'));
+          setText('r-contactName', r.contactName);
+          setText('r-phone', r.phone);
+          setText('r-email', r.email);
+          setText('r-purpose', r.purpose);
+          setText('r-headcount', r.headcount || '해당 없음');
+          setText('r-settlementMethod', r.settlementMethod || '해당 없음');
+          setText('r-amount', r.amount ? `${Number(String(r.amount).replace(/,/g,'')).toLocaleString('ko-KR')}원` : '0원');
+          setText('r-status', r.status);
+          setText('r-waitingOrder', r.waitingOrder || '해당 없음');
+          resultBox.classList.add('show');
+          showMessage('success', '예약 정보를 조회했습니다.');
+        } catch (err) {
+          showMessage('error', err.message || '예약조회 중 오류가 발생했습니다.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '조회하기';
+        }
+      });
+
+      renderAuthStatus();
+    })();
+  </script>
+</body>
+</html>
