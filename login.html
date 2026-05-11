@@ -6,143 +6,315 @@
   <title>로그인 | 한살림 농업살림센터 예약</title>
   <link rel="stylesheet" href="./assets/styles.css" />
   <style>
+    :root{
+      --bg:#f3f1e8;
+      --card:#fcfbf7;
+      --line:#d8ddd7;
+      --text:#173b34;
+      --muted:#6f786f;
+      --primary:#11664f;
+      --primary-dark:#0e5744;
+      --error-bg:#fff1f0;
+      --error-text:#9e2f2f;
+      --error-line:#f0c4c0;
+      --success-bg:#edf7f0;
+      --success-text:#1c5b34;
+      --success-line:#cfe5d5;
+      --shadow:0 12px 30px rgba(0,40,27,.06);
+      --radius:28px;
+    }
+
+    *{ box-sizing:border-box; }
+
     body{
       margin:0;
-      background:#f4f1e8;
-      color:#173b34;
+      background:var(--bg);
+      color:var(--text);
       font-family:Arial, sans-serif;
     }
-    .auth-wrap{
-      max-width:520px;
-      margin:56px auto;
-      padding:0 16px;
+
+    .page{
+      min-height:100vh;
+      padding:40px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    .auth-card{
-      background:#fffdf8;
-      border:1px solid rgba(23,59,52,.12);
-      border-radius:24px;
-      padding:28px 24px;
-      box-shadow:0 12px 28px rgba(0,40,27,.06);
+
+    .card{
+      width:100%;
+      max-width:980px;
+      background:var(--card);
+      border:1px solid rgba(23,59,52,.1);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:48px 48px 36px;
     }
-    .auth-title{
-      margin:0 0 8px;
-      font-size:32px;
-      font-weight:800;
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:#eef3ed;
+      color:#35554e;
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:20px;
     }
-    .auth-desc{
-      margin:0 0 24px;
-      color:#66736e;
-      line-height:1.6;
+
+    .title{
+      margin:0;
+      font-size:72px;
+      line-height:1.05;
+      letter-spacing:-0.03em;
+      font-weight:900;
     }
+
+    .desc{
+      margin:24px 0 36px;
+      font-size:18px;
+      line-height:1.8;
+      color:#70807a;
+      max-width:760px;
+      word-break:keep-all;
+    }
+
     .form-grid{
       display:grid;
-      gap:16px;
+      grid-template-columns:1fr 1fr;
+      gap:26px 32px;
+      margin-top:8px;
     }
+
     .field{
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:10px;
     }
+
     .field-label{
-      font-weight:700;
+      font-size:19px;
+      font-weight:900;
+      letter-spacing:-0.02em;
     }
+
     .field input{
-      height:52px;
-      border-radius:14px;
-      border:1px solid #d9ddd7;
-      padding:0 16px;
-      font-size:16px;
-      box-sizing:border-box;
       width:100%;
-    }
-    .auth-actions{
-      display:flex;
-      gap:12px;
-      justify-content:flex-end;
-      margin-top:24px;
-      flex-wrap:wrap;
-    }
-    .auth-links{
-      display:flex;
-      justify-content:space-between;
-      margin-top:20px;
-      gap:12px;
-      flex-wrap:wrap;
-      font-size:14px;
-    }
-    .msg{
-      margin-top:18px;
-      padding:14px 16px;
-      border-radius:14px;
-      display:none;
-      line-height:1.6;
-    }
-    .msg.show{ display:block; }
-    .msg.success{
-      background:#edf7f0;
-      color:#1c5b34;
-      border:1px solid #cfe7d5;
-    }
-    .msg.error{
-      background:#fff1f0;
-      color:#9a2f2f;
-      border:1px solid #f0c7c3;
-    }
-    .btn{
-      height:48px;
-      padding:0 20px;
-      border-radius:999px;
-      border:1px solid #d9ddd7;
+      height:108px;
+      border-radius:28px;
+      border:2px solid #d7ddd8;
       background:#fff;
-      cursor:pointer;
-      font-weight:700;
+      padding:0 28px;
+      font-size:26px;
+      color:var(--text);
+      outline:none;
+      transition:border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .field input::placeholder{
+      color:#a6aea9;
+    }
+
+    .field input:focus{
+      border-color:#7da695;
+      box-shadow:0 0 0 4px rgba(17,102,79,.08);
+    }
+
+    .msg{
+      margin-top:24px;
+      padding:16px 18px;
+      border-radius:18px;
+      display:none;
       font-size:15px;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
+      line-height:1.7;
+    }
+
+    .msg.show{ display:block; }
+    .msg.error{
+      background:var(--error-bg);
+      color:var(--error-text);
+      border:1px solid var(--error-line);
+    }
+    .msg.success{
+      background:var(--success-bg);
+      color:var(--success-text);
+      border:1px solid var(--success-line);
+    }
+
+    .actions{
+      display:flex;
       justify-content:center;
-      color:#173b34;
-      box-sizing:border-box;
+      margin-top:34px;
     }
-    .btn-primary{
-      background:#0f5a46;
+
+    .btn-login{
+      min-width:170px;
+      height:100px;
+      padding:0 38px;
+      border:none;
+      border-radius:999px;
+      background:var(--primary);
       color:#fff;
-      border-color:#0f5a46;
+      font-size:26px;
+      font-weight:900;
+      cursor:pointer;
+      transition:background .15s ease, transform .15s ease, opacity .15s ease;
     }
-    .btn:disabled{
+
+    .btn-login:hover{
+      background:var(--primary-dark);
+      transform:translateY(-1px);
+    }
+
+    .btn-login:disabled{
       opacity:.6;
       cursor:not-allowed;
+      transform:none;
+    }
+
+    .links{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:20px;
+      margin-top:42px;
+      padding-top:12px;
+      border-top:1px solid rgba(23,59,52,.08);
+      flex-wrap:wrap;
+    }
+
+    .links a{
+      color:var(--text);
+      text-decoration:none;
+      font-size:20px;
+      font-weight:500;
+    }
+
+    .links a:hover{
+      text-decoration:underline;
+    }
+
+    @media (max-width: 900px){
+      .card{
+        padding:36px 24px 28px;
+      }
+
+      .title{
+        font-size:56px;
+      }
+
+      .field input{
+        height:86px;
+        font-size:22px;
+        border-radius:22px;
+      }
+
+      .btn-login{
+        height:84px;
+        font-size:24px;
+      }
+    }
+
+    @media (max-width: 720px){
+      .page{
+        padding:20px 14px;
+      }
+
+      .card{
+        padding:28px 18px 22px;
+        border-radius:22px;
+      }
+
+      .title{
+        font-size:46px;
+      }
+
+      .desc{
+        font-size:16px;
+        margin:18px 0 28px;
+      }
+
+      .form-grid{
+        grid-template-columns:1fr;
+        gap:18px;
+      }
+
+      .field-label{
+        font-size:17px;
+      }
+
+      .field input{
+        height:68px;
+        font-size:18px;
+        border-radius:18px;
+        padding:0 18px;
+      }
+
+      .btn-login{
+        width:100%;
+        height:64px;
+        font-size:22px;
+      }
+
+      .links{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:14px;
+      }
+
+      .links a{
+        font-size:17px;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="auth-wrap">
-    <section class="auth-card">
-      <h1 class="auth-title">로그인</h1>
-      <p class="auth-desc">
+  <main class="page">
+    <section class="card">
+      <div class="eyebrow">관계자 전용 로그인</div>
+      <h1 class="title">로그인</h1>
+      <p class="desc">
         승인된 관계자 계정으로 로그인해 주세요.<br />
         승인 전 계정은 로그인할 수 없습니다.
       </p>
 
-      <form id="loginForm" class="form-grid">
-        <label class="field">
-          <span class="field-label">아이디</span>
-          <input type="text" id="loginId" name="loginId" placeholder="아이디를 입력해 주세요" required />
-        </label>
+      <form id="loginForm">
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">아이디</span>
+            <input
+              type="text"
+              id="loginId"
+              name="loginId"
+              placeholder="아이디를 입력해 주세요"
+              autocomplete="username"
+              required
+            />
+          </label>
 
-        <label class="field">
-          <span class="field-label">비밀번호</span>
-          <input type="password" id="password" name="password" placeholder="비밀번호를 입력해 주세요" required />
-        </label>
+          <label class="field">
+            <span class="field-label">비밀번호</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="비밀번호를 입력해 주세요"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+        </div>
 
-        <div class="auth-actions">
-          <button type="submit" class="btn btn-primary" id="btnLogin">로그인</button>
+        <div id="messageBox" class="msg"></div>
+
+        <div class="actions">
+          <button type="submit" class="btn-login" id="btnLogin">로그인</button>
         </div>
       </form>
 
-      <div id="messageBox" class="msg"></div>
-
-      <div class="auth-links">
+      <div class="links">
         <a href="./signup.html">회원가입 신청하기</a>
         <a href="./index.html">예약 페이지로 이동</a>
       </div>
@@ -169,6 +341,7 @@
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         btn.disabled = true;
         btn.textContent = '처리 중...';
         box.className = 'msg';
